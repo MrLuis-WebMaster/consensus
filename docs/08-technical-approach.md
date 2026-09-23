@@ -11,7 +11,7 @@
 | Lenguaje de aplicación e integración | TypeScript |
 | Entorno inicial | Testnet o entorno equivalente de pruebas |
 | Datos | Exclusivamente ficticios |
-| Repositorio | Monorepositorio público |
+| Repositorio | Repositorio público |
 
 ## Arquitectura lógica
 
@@ -98,6 +98,10 @@ La selección debe priorizar seguridad, reproducibilidad y claridad educativa.
 ## Backend y almacenamiento off-chain
 
 No están confirmados. Solo se incorporarán si un requisito no puede resolverse razonablemente con la aplicación cliente y Stellar.
+
+## Estructura del repositorio
+
+La elección entre monorepo, workspace u otra organización permanece abierta y se resolverá después de seleccionar la arquitectura. La documentación no presupone una estructura de código.
 
 ## Interfaces conceptuales TypeScript
 

@@ -6,6 +6,7 @@
 | --- | --- | --- | --- | --- |
 | FRC-001 Dependencia del mismo sistema | H-001 | RF-014, RF-015, RNF-005 | PA-011 | R-013 |
 | FRC-002 Reglas no verificables | H-003, H-004 | RF-004 a RF-011, RNF-009 | PA-002 a PA-009 | R-007 |
+| Cambios administrativos no autorizados | H-003, H-004 | RF-001 a RF-003, RF-005, RF-010, AUT-001 | PA-017 | R-007 |
 | FRC-003 Evidencia no reproducible | H-005 | RF-012 a RF-015, RNF-003 | PA-010, PA-011 | R-013 |
 | FRC-004 Riesgo de privacidad | S-001, S-003 | RNF-002, RNF-012 | PA-015 | R-005, R-006 |
 | FRC-005 Fallos del cliente | H-002, H-006 | RF-016, RNF-007, RNF-010 | PA-013 | R-011 |

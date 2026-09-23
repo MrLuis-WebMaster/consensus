@@ -20,7 +20,7 @@ Los frentes no fijan la tecnología pendiente. Cada integrante debe contribuir m
 
 - Completar prueba TypeScript con Stellar.
 - Comparar solución con y sin contrato.
-- Registrar DEC-004 sobre arquitectura.
+- Resolver OPEN-001 sobre arquitectura y registrar la decisión con el siguiente identificador disponible.
 - Seleccionar framework y estrategia de firma.
 - Crear el esqueleto mínimo del repositorio.
 

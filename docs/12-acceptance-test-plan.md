@@ -20,6 +20,7 @@
 | PA-014 | Revisión de secretos | RNF-001 | No se encuentran secretos en repositorio ni logs. |
 | PA-015 | Revisión de privacidad | RNF-002, RNF-012 | Solo hay datos ficticios y advertencia visible. |
 | PA-016 | Navegación básica | RNF-006 | Los flujos críticos funcionan con teclado y texto. |
+| PA-017 | Acción administrativa no autorizada | RF-001, RF-002, RF-003, RF-005, RF-010, AUT-001 | Una identidad no administradora intenta crear o modificar la elección, registrar opciones y participantes, abrirla y cerrarla; cada intento se rechaza sin alterar la configuración, el estado ni el conteo. |
 
 ## Niveles
 
@@ -66,4 +67,4 @@ Para cada ejecución:
 
 ## Criterio de salida
 
-El MVP no se declara completado hasta aprobar PA-001 a PA-012 y documentar el estado de PA-013 a PA-016.
+El MVP no se declara completado hasta aprobar PA-001 a PA-017 con la evidencia requerida. Cualquier prueba fallida o bloqueada impide declarar el MVP terminado.

@@ -7,16 +7,16 @@
 
 | ID | Requisito | Prioridad |
 | --- | --- | --- |
-| RF-001 | El sistema debe crear una elección de prueba con identificador, título y estado. | Must |
-| RF-002 | Debe registrar al menos dos opciones ficticias. | Must |
-| RF-003 | Debe registrar participantes ficticios habilitados. | Must |
+| RF-001 | El sistema debe permitir al administrador crear una elección de prueba con identificador, título y estado. | Must |
+| RF-002 | Debe permitir al administrador registrar al menos dos opciones ficticias. | Must |
+| RF-003 | Debe permitir al administrador registrar participantes ficticios habilitados. | Must |
 | RF-004 | Debe impedir abrir una elección sin configuración válida. | Must |
-| RF-005 | Debe permitir la transición Configuración → Abierta. | Must |
+| RF-005 | Debe permitir al administrador la transición Configuración → Abierta y rechazarla para otros actores. | Must |
 | RF-006 | Debe autorizar la operación del participante. | Must |
 | RF-007 | Debe aceptar un voto válido durante el estado Abierta. | Must |
 | RF-008 | Debe rechazar participantes no habilitados. | Must |
 | RF-009 | Debe impedir un segundo voto aceptado de la misma identidad de prueba. | Must |
-| RF-010 | Debe permitir la transición Abierta → Cerrada. | Must |
+| RF-010 | Debe permitir al administrador la transición Abierta → Cerrada y rechazarla para otros actores. | Must |
 | RF-011 | Debe rechazar votos fuera del estado Abierta. | Must |
 | RF-012 | Debe consultar el estado actual. | Must |
 | RF-013 | Debe consultar el conteo por opción. | Must |
@@ -48,7 +48,7 @@
 - EST-001: Configuración solo puede pasar a Abierta.
 - EST-002: Abierta solo puede pasar a Cerrada.
 - EST-003: Cerrada es final para el escenario.
-- AUT-001: solo el administrador ejecuta configuración y transiciones.
+- AUT-001: solo el administrador ejecuta configuración y transiciones; las solicitudes de otros actores se rechazan sin cambiar la configuración ni el estado.
 - AUT-002: cada participante autoriza su voto.
 - VOT-001: solo votan participantes habilitados.
 - VOT-002: solo se acepta un voto por participante.

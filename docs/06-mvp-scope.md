@@ -86,7 +86,7 @@ Estas decisiones están controladas en [13-decision-log.md](13-decision-log.md).
 El MVP se considera completado cuando:
 
 - Todos los requisitos prioritarios están implementados.
-- Las pruebas de aceptación PA-001 a PA-012 han sido ejecutadas.
+- Las pruebas de aceptación PA-001 a PA-017 están aprobadas con evidencia; ninguna permanece fallida o bloqueada.
 - Existe un despliegue reproducible en la red de pruebas.
 - Un observador puede verificar el resultado siguiendo la documentación.
 - El equipo presenta limitaciones y amenazas sin ocultarlas.

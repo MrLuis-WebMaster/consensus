@@ -8,6 +8,8 @@
 
 Consensus se implementará como una dapp de Stellar usando contratos Soroban escritos en Rust. TypeScript será el cliente web, el orquestador de casos de uso y el adaptador de Stellar. Python/FastAPI será opcional y únicamente para servicios off-chain aislados (por ejemplo, un experimento de detección facial con datos sintéticos). El contrato nunca recibirá imágenes ni plantillas biométricas.
 
+**Ajuste para entrega 2:** Medellín es el único escenario del piloto. Freighter firma XDR en Testnet desde el cliente, pero la UI actual no transmite la transacción. Circle queda sin integración: sus guías públicas de firma de billeteras consultadas describen APIs/cadenas específicas y no confirman firma de invocaciones Soroban; no se asumirá compatibilidad por el hecho de que Circle Mint opere en Stellar. Los ocho nodos solicitados se investigarán como ocho perfiles ficticios de administración/observación, no validadores de Stellar. Django (el PDF no exige framework Python concreto), TOTP, WAF y reconocimiento facial siguen fuera de la ruta de voto.
+
 ```text
 Navegador TypeScript
   ├─ autenticación local (WebAuthn/TOTP para demo)

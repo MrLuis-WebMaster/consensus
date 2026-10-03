@@ -6,9 +6,9 @@
 
 ## Decisión de arquitectura propuesta
 
-Consensus se implementará como una dapp de Stellar usando contratos Soroban escritos en Rust. TypeScript será el cliente web, el orquestador de casos de uso y el adaptador de Stellar. Python/FastAPI será opcional y únicamente para servicios off-chain aislados (por ejemplo, un experimento de detección facial con datos sintéticos). El contrato nunca recibirá imágenes ni plantillas biométricas.
+Consensus es un laboratorio educativo para Stellar: contrato Soroban en Rust, cliente TypeScript/Freighter y un servicio off-chain Django que evalúa vectores numéricos sintéticos y verifica un OTP administrativo. Nginx distribuye solicitudes entre dos instancias Python y ModSecurity/OWASP CRS aplica reglas WAF delante del balanceador. Estos contenedores son servicios centralizados desplegados por el equipo; no son validadores Stellar ni quedan descentralizados por estar escritos en Rust. La descentralización del estado y ejecución del contrato la aporta la red Stellar.
 
-**Ajuste para entrega 2:** Medellín es el único escenario del piloto. Freighter firma XDR en Testnet desde el cliente, pero la UI actual no transmite la transacción. Circle queda sin integración: sus guías públicas de firma de billeteras consultadas describen APIs/cadenas específicas y no confirman firma de invocaciones Soroban; no se asumirá compatibilidad por el hecho de que Circle Mint opere en Stellar. Los ocho nodos solicitados se investigarán como ocho perfiles ficticios de administración/observación, no validadores de Stellar. Django (el PDF no exige framework Python concreto), TOTP, WAF y reconocimiento facial siguen fuera de la ruta de voto.
+**Estado entrega 2:** Medellín es el piloto preparado, sin contrato desplegado ni transacción publicada. El cliente ya construye, simula, firma y envía invocaciones a Testnet cuando se proporciona el contrato, las cuentas y las wallets. Freighter es el proveedor funcional. Circle no firma Soroban en esta implementación: Circle Wallets no declara Stellar como cadena soportada. Los ocho perfiles son firmantes de una cuenta multisig propuesta 5-de-8; son administradores de aplicación, no validadores. Django/TOTP y WAF corren en un laboratorio local y no forman parte de la validación de voto on-chain. La puntuación Python es sintética y no procesa rostros.
 
 ```text
 Navegador TypeScript
@@ -28,10 +28,10 @@ Navegador TypeScript
 | Stellar/Soroban | Registro verificable, estados, reglas y eventos | Mainnet y elecciones reales |
 | Rust | Contrato pequeño, seguro y testeable | Lógica de negocio del frontend |
 | TypeScript | UI, SDK, firma, consulta y pruebas de integración | Guardar secretos en navegador |
-| Python/FastAPI | Endpoint experimental de elegibilidad | Decidir o contar votos |
+| Python/Django | Score numérico sintético y verificación OTP para UI de demo | Reconocimiento facial o decidir/contar votos |
 | PostgreSQL/SQLite | Persistencia mínima off-chain, si hace falta | Fuente de verdad del resultado |
-| WebAuthn o TOTP | Segundo factor para administradores de demo | Promesa de anonimato electoral |
-| Docker | Entorno reproducible local | Operación productiva |
+| TOTP/Django | Filtro de conveniencia para controles administrativos de demo | Sustituir firma multisig Stellar o garantizar seguridad productiva |
+| Docker, Nginx, OWASP CRS | Dos workers Python, balanceador y WAF local | Descentralizar los servicios o una operación productiva |
 | Terraform | Infraestructura de laboratorio opcional | Crear una red Stellar administrada |
 | Kubernetes/Nginx | No necesarios para el MVP | Escalamiento futuro, tras medir carga |
 

@@ -12,9 +12,13 @@ El catálogo de escenarios de práctica contiene doce departamentos: Amazonas, A
 
 ## Arquitectura y firmas
 
-Cliente web TypeScript + SDK Stellar; contrato Soroban escrito en Rust; Stellar Quickstart local para desarrollo y Testnet para demo. Freighter es la billetera prioritaria para firma de XDR en navegador. La integración Circle queda en investigación hasta comprobar soporte oficial para firma Soroban en Stellar. Cualquier secreto de Circle permanece en servidor/gestor seguro. Ocho “nodos” del requerimiento se tratarán como perfiles administrativos de la aplicación; el consenso de Stellar no lo opera este proyecto. Para acciones compartidas se estudiará multisig y umbrales en una cuenta Stellar de prueba.
+Cliente web TypeScript + SDK Stellar; contrato Soroban escrito en Rust; Stellar Quickstart local para desarrollo y Testnet para demo. El cliente puede simular, firmar con Freighter, enviar y consultar una invocación cuando exista un contrato configurado. **Todavía no se desplegó contrato ni se publicó transacción**, por lo que no hay contract ID o enlace de transacción. La administración está diseñada para 5 firmas de 8 cuentas públicas de prueba en una cuenta multisig Stellar. Configure ocho claves independientes y establezca los pesos/umbrales en Testnet antes de probar; son firmantes administrativos, no validadores de consenso. Las analogías con Personería, Contraloría, Concejo y Registraduría son exclusivamente didácticas y no atribuyen jerarquías, representación ni firmas oficiales.
 
-Django, TOTP (compatible con aplicaciones autenticadoras), WAF y reconocimiento facial son trabajo futuro. Biometría solo con datos sintéticos, fuera de la ruta de voto y jamás almacenada en cadena. TOTP protege acceso de demo, no el anonimato del voto.
+Django valida un token de laboratorio y OTP TOTP para mostrar controles administrativos. Dos instancias Django reciben carga mediante Nginx `least_conn`, con OWASP CRS/ModSecurity como proxy frontal. Es infraestructura centralizada de laboratorio: Rust no descentraliza los servidores Python. Rust ejecuta las reglas del contrato en la red Stellar distribuida; Django procesa únicamente números sintéticos y TOTP, y no participa en la decisión ni conteo del voto. No hay reconocimiento facial. TOTP es un filtro de interfaz, no sustituye las firmas on-chain.
+
+Freighter es el único firmante implementado. Circle Wallets no lista Stellar en las redes soportadas por su producto de wallet, por lo que Circle no puede declararse integración funcional para esta dapp. Circle Mint/USDC sobre Stellar no equivale a firma de operaciones Soroban. Las tarifas mostradas son `fee` y `resourceFee` de Stellar en stroops, más instrucciones y bytes simulados; “gas” es solo una analogía informal.
+
+La fase siguiente propone cinco territorios de los doce modelados (Antioquia, Cundinamarca, Valle del Cauca, Atlántico y Santander), pendiente de aprobación del equipo. Se desplegará una instancia contractual por territorio y se añadirá su contract ID a `VITE_TERRITORY_CONTRACTS`; no se levantarán validadores propios por departamento.
 
 ## Enlaces del repositorio
 

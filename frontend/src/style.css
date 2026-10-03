@@ -17,5 +17,6 @@ button { margin: .35rem .5rem .65rem 0; padding: .7rem 1rem; border: 0; border-r
 button:disabled { background: #829ab1; cursor: not-allowed; }
 button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 3px solid #f0b429; outline-offset: 2px; }
 label { display: block; margin: .5rem 0; font-weight: 650; }
+input { width: 100%; margin: .2rem 0 .65rem; padding: .65rem; border: 1px solid #9fb3c8; border-radius: .35rem; font: inherit; }
 textarea { width: 100%; padding: .65rem; border: 1px solid #9fb3c8; border-radius: .35rem; font: .85rem ui-monospace, monospace; }
 footer { max-width: 1050px; margin: auto; padding: 1rem; color: #52667a; }

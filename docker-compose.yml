@@ -4,18 +4,75 @@ services:
     command: ["--local", "--enable", "stellar-rpc,horizon"]
     ports:
       - "8000:8000"
-    profiles: [stellar]
+    profiles: [stellar, lab]
 
   backend:
     build: ./backend
+    profiles: [lab]
     environment:
       RUST_LOG: info
-      BIOMETRIC_API_URL: http://biometric:8001
+      IDENTITY_API_URL: http://security-waf:8080
     ports:
       - "8080:8080"
-    depends_on: [biometric]
+    restart: unless-stopped
 
-  biometric:
+  identity-a:
+    container_name: consensus-identity-a
     build: ./encryption/biometric
+    profiles: [lab]
+    environment: &identity-env
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY in .env}
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
+      TOTP_SECRET: ${TOTP_SECRET:-}
+      IDENTITY_CORS_ORIGINS: ${IDENTITY_CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+    expose: ["8001"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=2)"]
+      interval: 20s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  identity-b:
+    container_name: consensus-identity-b
+    build: ./encryption/biometric
+    profiles: [lab]
+    environment: *identity-env
+    expose: ["8001"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=2)"]
+      interval: 20s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  python-lb:
+    image: nginx:1.28-alpine
+    profiles: [lab]
+    volumes:
+      - ./docker/python-lb.conf:/etc/nginx/nginx.conf:ro
+    expose: ["8080"]
+    depends_on:
+      identity-a:
+        condition: service_healthy
+      identity-b:
+        condition: service_healthy
+    restart: unless-stopped
+
+  security-waf:
+    image: owasp/modsecurity-crs:4.25-lts-nginx
+    profiles: [lab]
+    environment:
+      BACKEND: http://python-lb:8080
+      MODSEC_RULE_ENGINE: On
+      BLOCKING_PARANOIA: "1"
+      DETECTION_PARANOIA: "1"
+      ANOMALY_INBOUND: "5"
+      ANOMALY_OUTBOUND: "4"
+      MODSEC_AUDIT_ENGINE: RelevantOnly
+      MAX_NUM_ARGS: "64"
+      TOTAL_ARG_LENGTH: "4096"
     ports:
-      - "8001:8001"
+      - "8088:8080"
+    depends_on: [python-lb]
+    restart: unless-stopped

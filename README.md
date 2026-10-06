@@ -2,7 +2,7 @@
 
 Proyecto educativo de código abierto para diseñar y construir un sistema de votaciones comunitarias verificables sobre Stellar.
 
-> **Estado actual:** definición de producto y base documental completadas. La implementación técnica aún no ha comenzado.
+> **Estado actual:** base documental lista para revisión del equipo; empieza un laboratorio TypeScript/Freighter y Soroban/Rust incompleto. No desplegado, no apto para votaciones reales y sin voto secreto.
 
 ## Propósito
 
@@ -92,6 +92,8 @@ Consulta el [alcance detallado](docs/06-mvp-scope.md).
 | Documento | Contenido |
 | --- | --- |
 | [Índice documental](docs/README.md) | Organización, estados y reglas de mantenimiento |
+| [Product Blueprint — entrega 2](docs/semana2/ProductBlueprint.md) | Flujo, MVP, arquitectura, territorio y backlog |
+| [Wiki del laboratorio](docs/wiki/Home.md) | Roles sintéticos, alcance y próximos pasos |
 | [Problem brief](docs/01-problem-brief.md) | Problema, límites y evidencia |
 | [Personas y actores](docs/02-people-and-actors.md) | Roles sintéticos y necesidades |
 | [Flujo de valor](docs/03-current-value-flow.md) | Proceso base y fricciones |
@@ -119,7 +121,8 @@ Consulta el [alcance detallado](docs/06-mvp-scope.md).
 - [x] Criterios y pruebas de aceptación definidos.
 - [x] Riesgos y decisiones pendientes registrados.
 - [x] Plan de trabajo para cinco integrantes definido.
-- [ ] Implementación técnica.
+- [x] Esqueleto TypeScript de laboratorio y conexión/firma Freighter restringida a Testnet (sin envío).
+- [ ] Contrato de votación completo, elegibilidad, conteo y pruebas.
 - [ ] Pruebas ejecutadas.
 - [ ] Despliegue del MVP.
 

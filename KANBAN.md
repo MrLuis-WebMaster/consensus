@@ -8,11 +8,11 @@ Tablero de seguimiento del MVP. Las tarjetas no se marcan como terminadas hasta 
 - [x] KAN-002 — Contrato Soroban Rust con administración, autorización, estados, voto único y conteos; pruebas unitarias pasan en GitHub Actions.
 - [x] KAN-003 — Cliente TypeScript valida Testnet, simula, firma, envía y consulta operaciones del contrato configurado.
 - [x] KAN-004 — Freighter integrado como wallet para firma en Testnet; soporte 5-de-8 en interfaz.
-- [x] KAN-007 — Doce departamentos modelados; siguiente fase propuesta con cinco territorios.
+- [x] KAN-007 — Diez departamentos en el selector y catálogo; contrato y administración configurables por territorio.
 - [x] KAN-008 — Roles descritos como perfiles didácticos sin atribución de autoridad a entidades públicas.
 - [x] KAN-010 — Django implementa TOTP de demo y vector numérico sintético; dos réplicas Python detrás de Nginx y WAF OWASP CRS en Compose.
 - [x] KAN-012 — Spike numérico sintético; no procesa rostros ni biometría.
-- [x] KAN-016 — Wiki, blueprint, tablero y guía local actualizados para el escenario sintético de Medellín.
+- [x] KAN-016 — Wiki, blueprint, tablero y guía local actualizados para el laboratorio de diez departamentos y el piloto sintético de Medellín.
 - [x] KAN-017 — Visual Replit adaptado al cliente TypeScript existente, con fotos locales, navegación y layout responsive.
 - [x] KAN-019 — Configuración Vercel para `frontend/` con instalación reproducible y guía de variables públicas/secretos.
 - [x] KAN-020 — Contenedor Django preparado para Docker Spaces con puerto configurable; la guía limita el uso público a datos sintéticos sin TOTP/WAF.
@@ -33,7 +33,7 @@ Tablero de seguimiento del MVP. Las tarjetas no se marcan como terminadas hasta 
 
 ## Alcance territorial
 
-Doce departamentos modelados: Amazonas, Antioquia, Arauca, Atlántico, Bolívar, Boyacá, Caldas, Cauca, Chocó, Cundinamarca, Santander y Valle del Cauca. Entrega actual: Medellín, Antioquia. La siguiente entrega propone cinco de los doce: Antioquia, Cundinamarca, Valle del Cauca, Atlántico y Santander, sujeto a aprobación. Son instancias y perfiles de aplicación, no validadores propios.
+Diez departamentos en el alcance de esta entrega: Antioquia (Medellín, piloto de interfaz), Cundinamarca (Bogotá), Valle del Cauca (Cali), Atlántico (Barranquilla), Santander (Bucaramanga), Bolívar (Cartagena), Boyacá (Tunja), Caldas (Manizales), Cauca (Popayán) y Chocó (Quibdó). Cada uno tiene su propio código, entrada seleccionable y espacio independiente para contract ID y cuenta/firmantes administradores. La interfaz no configura ni despliega esas cuentas: al corte, los diez contratos y los diez perfiles de administración siguen pendientes de credenciales y despliegue. Son escenarios de aplicación, no validadores propios; todas las instancias usarían Stellar Testnet.
 
 ## Definition of done
 

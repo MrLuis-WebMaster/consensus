@@ -64,6 +64,16 @@ h1 em { color: #b9d1ad; font-weight: 500; }
 .summary-card > strong { overflow: hidden; color: var(--ink); font-size: .82rem; text-overflow: ellipsis; white-space: nowrap; }
 .summary-card > small { color: var(--muted); font-size: .68rem; }
 .summary-card select { max-width: 100%; padding: 0; color: var(--green-dark); border: 0; outline: 0; background: transparent; font-size: .84rem; font-weight: 750; }
+.territory-panel { margin: 1rem 0 1.2rem; padding: 1rem 1.1rem; border: 1px solid var(--line); border-radius: 12px; background: #f9f8f2; }
+.territory-panel .gallery-heading { margin-bottom: .85rem; }
+.territory-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .55rem; }
+.territory-card { min-width: 0; min-height: 82px; display: flex; flex-direction: column; align-items: flex-start; gap: .28rem; padding: .7rem; color: var(--ink); border: 1px solid var(--line); background: var(--paper); text-align: left; }
+.territory-card:hover, .territory-card.selected { color: var(--green-dark); border-color: #78a083; background: #eef4eb; }
+.territory-card.selected { box-shadow: inset 0 0 0 1px #78a083; }
+.territory-name { overflow: hidden; max-width: 100%; font-size: .76rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.territory-capital { color: var(--muted); font-size: .64rem; }
+.territory-readiness { color: #876329; font-size: .58rem; line-height: 1.35; }
+.territory-note { margin: .75rem 0 0; color: var(--muted); font-size: .65rem; line-height: 1.5; }
 .status-line { display: flex; align-items: center; gap: .45rem; font-size: .78rem !important; }
 .status-dot { background: #d09238; }
 .place-gallery { margin: 1.35rem 0 1rem; }
@@ -138,6 +148,7 @@ footer p { flex-basis: 100%; margin: 0; line-height: 1.5; }
   .app-shell { grid-template-columns: 180px minmax(0, 1fr); }
   .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-stamp { right: 2rem; }
+  .territory-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 720px) {
   .topbar { height: auto; min-height: 66px; padding: .7rem 1rem; }
@@ -148,6 +159,8 @@ footer p { flex-basis: 100%; margin: 0; line-height: 1.5; }
   .nav-link { min-height: 36px; flex: none; gap: .35rem; padding: .45rem .55rem; font-size: .72rem; }
   .nav-link span { font-size: .55rem; }
   .page-content { padding: 1rem .8rem .5rem; }
+  .territory-panel { padding: .85rem; }
+  .territory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-panel { min-height: 280px; align-items: flex-start; padding: 1.5rem 1.2rem 5.5rem; }
   .hero-stamp { top: 1.25rem; right: 1rem; width: 66px; height: 66px; opacity: .8; }
   .hero-stamp span { font-size: 1.25rem; }

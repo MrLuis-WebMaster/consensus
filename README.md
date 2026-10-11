@@ -1,6 +1,6 @@
 # Consensus
 
-Laboratorio educativo de votación sintética para estudiar Stellar Soroban, firmas y evidencia verificable. El piloto es Medellín, Antioquia. **No usar en elecciones oficiales o vinculantes: no ofrece voto secreto, no verifica identidad legal y todas las cuentas/opciones deben ser ficticias.**
+Laboratorio educativo de votación sintética para estudiar Stellar Soroban, firmas y evidencia verificable. El catálogo cubre diez departamentos; Medellín, Antioquia, es el piloto de interfaz. **No usar en elecciones oficiales o vinculantes: no ofrece voto secreto, no verifica identidad legal y todas las cuentas/opciones deben ser ficticias.**
 
 ## Estado actual
 
@@ -9,6 +9,7 @@ Laboratorio educativo de votación sintética para estudiar Stellar Soroban, fir
 - Django/Python ofrece TOTP para la interfaz de administración y una comparación numérica sintética. Docker Compose configura dos instancias Django tras Nginx `least_conn`, protegidas por OWASP CRS/ModSecurity.
 - El diseño visual incorpora la dirección del prototipo Replit. El frontend actual conserva su cliente TypeScript, sin importar el workspace React/Replit completo. No se adjuntó archivo o URL fuente de Figma.
 - **Aún no se ha desplegado el contrato ni publicado una transacción**; por eso no existe contract ID ni link de blockchain para este piloto. El WAF/Django están configurados para laboratorio local, no publicados.
+- La interfaz ya muestra los diez departamentos, su capital, selección y estado de preparación de contrato y firmantes. Los diez siguen pendientes de credenciales y despliegues de Testnet; el catálogo no representa diez nodos validadores.
 
 Los ocho administradores propuestos son perfiles de aplicación con un umbral objetivo 5-de-8; no son validadores de Stellar. Freighter es el firmante integrado. Circle no se presenta como wallet de Stellar. Rust descentraliza la ejecución del contrato al correr en la red Stellar; no descentraliza por sí mismo los servicios Django.
 
@@ -28,7 +29,7 @@ Para el backend local, copia `.env.example` a `.env`, define secretos nuevos y e
 docker compose --profile lab up --build
 ```
 
-Consulta [la guía Stellar](stellar/README.md) para construir/desplegar a Testnet, [el despliegue Vercel](frontend/DEPLOYMENT.md) para publicar solo la interfaz, y [KANBAN.md](KANBAN.md) para alcance, estados y dependencias. Nunca guardes secretos en `.env.example`, Git, o variables `VITE_*`.
+Consulta [la guía Stellar](stellar/README.md) para construir/desplegar a Testnet, [el despliegue Vercel](frontend/DEPLOYMENT.md) para publicar solo la interfaz, y [KANBAN.md](KANBAN.md) para alcance, estados y dependencias. Configura contract ID y firmantes independientemente por departamento. Nunca guardes secretos en `.env.example`, Git, o variables `VITE_*`.
 
 ## Componentes
 

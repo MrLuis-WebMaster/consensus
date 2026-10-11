@@ -1,4 +1,4 @@
-import { activeContractId, availableTerritories, selectTerritory } from './territories';
+import { activeContractId, selectTerritory, territories, territoryInfo } from './territories';
 import { verifyAdminTotp } from './identity';
 
 type DemoElection = {
@@ -56,10 +56,16 @@ root.innerHTML = `
       </section>
 
       <section class="summary-grid" aria-label="Estado del laboratorio">
-        <article class="summary-card"><span class="eyebrow">ELECCIÓN</span><strong>${demo.name}</strong><small>${demo.place}</small></article>
-        <article class="summary-card"><span class="eyebrow">TERRITORIO</span><label class="sr-only" for="territory">Seleccionar territorio</label><select id="territory">${availableTerritories().map((code) => `<option value="${code}">${code}</option>`).join('')}</select><small>Siguiente fase: 5 de 12 territorios</small></article>
+        <article class="summary-card"><span class="eyebrow">ELECCIÓN</span><strong>${demo.name}</strong><small id="active-place">${demo.place}</small></article>
+        <article class="summary-card"><span class="eyebrow">TERRITORIO ACTIVO</span><label class="sr-only" for="territory">Seleccionar departamento</label><select id="territory">${territories.map(({ code, name, capital }) => `<option value="${code}">${name} · ${capital}</option>`).join('')}</select><small id="territory-caption">10 departamentos · selecciona para revisar su estado</small></article>
         <article class="summary-card"><span class="eyebrow">CONTRATO</span><strong id="contract-status" class="status-line"><i class="status-dot"></i>${demo.status}</strong><small>Sin despliegue publicado aún</small></article>
         <article class="summary-card"><span class="eyebrow">CUENTA CONECTADA</span><strong id="account">Sin wallet</strong><small id="wallet-state" aria-live="polite">Freighter es el firmante habilitado.</small></article>
+      </section>
+
+      <section id="territory-panel" class="territory-panel" aria-labelledby="territory-heading">
+        <div class="gallery-heading"><div><p class="eyebrow">COBERTURA DEL LABORATORIO</p><h2 id="territory-heading">Diez departamentos preparados</h2></div><p>La selección organiza la instancia de contrato y su administración. Los territorios sin credenciales permanecen en modo preparación.</p></div>
+        <div class="territory-grid">${territories.map((territory) => `<button class="territory-card${territory.pilot ? ' selected' : ''}" type="button" data-territory="${territory.code}" aria-pressed="${territory.pilot ? 'true' : 'false'}"><span class="territory-name">${territory.name}</span><span class="territory-capital">${territory.capital}${territory.pilot ? ' · piloto' : ''}</span><span class="territory-readiness" data-readiness="${territory.code}">Revisando configuración…</span></button>`).join('')}</div>
+        <p class="territory-note">Cada departamento usa Stellar Testnet; esto no crea validadores propios. Los votos, las elecciones y la participación aquí son demostrativos y no oficiales.</p>
       </section>
 
       <section class="place-gallery" aria-label="Medellín y Antioquia">
@@ -116,12 +122,65 @@ const message = root.querySelector<HTMLParagraphElement>('#wallet-state')!;
 const connectButton = root.querySelector<HTMLButtonElement>('#connect')!;
 let connectedAddress: string | undefined;
 root.querySelector<HTMLSelectElement>('#territory')!.addEventListener('change', (event) => {
-  const territory = (event.currentTarget as HTMLSelectElement).value;
-  selectTerritory(territory);
-  const status = root!.querySelector<HTMLElement>('#contract-status')!;
-  status.innerHTML = `<i class="status-dot"></i>${activeContractId() ? 'Contrato configurado en Testnet' : 'Contrato pendiente de configuración'}`;
-  message.textContent = `Territorio ${territory}: ${activeContractId() ? 'contrato listo en Testnet' : 'falta configurar contrato de Testnet'}.`;
+  setActiveTerritory((event.currentTarget as HTMLSelectElement).value);
 });
+
+function territoryAdminReady(code: string): boolean {
+  try {
+    const raw = import.meta.env.VITE_TERRITORY_ADMINS as string | undefined;
+    const config = raw ? JSON.parse(raw) as Record<string, { account?: string; signers?: string[]; threshold?: number }> : {};
+    const legacyAccount = code === 'CO-ANT-MED' ? import.meta.env.VITE_ADMIN_ACCOUNT as string | undefined : undefined;
+    const legacySigners = code === 'CO-ANT-MED' ? (import.meta.env.VITE_ADMIN_SIGNERS as string | undefined)?.split(',').map((item) => item.trim()).filter(Boolean) : undefined;
+    const item = config[code];
+    const account = item?.account ?? legacyAccount;
+    const signers = item?.signers ?? legacySigners ?? [];
+    const threshold = Number(item?.threshold ?? (code === 'CO-ANT-MED' ? import.meta.env.VITE_ADMIN_THRESHOLD ?? '5' : 5));
+    return Boolean(account && /^G[A-Z2-7]{55}$/.test(account) && threshold === 5 && signers.length === 8 && new Set(signers).size === 8 && signers.every((signer) => /^G[A-Z2-7]{55}$/.test(signer)));
+  } catch {
+    return false;
+  }
+}
+
+function updateTerritoryReadiness(): void {
+  for (const territory of territories) {
+    const ready = root!.querySelector<HTMLElement>(`[data-readiness="${territory.code}"]`)!;
+    const hasContract = Boolean((import.meta.env.VITE_TERRITORY_CONTRACTS as string | undefined) && activeTerritoryForContract(territory.code));
+    const hasAdmins = territoryAdminReady(territory.code);
+    ready.textContent = `${hasContract ? 'Contrato configurado' : 'Contrato pendiente'} · ${hasAdmins ? 'firmantes configurados' : 'firmantes pendientes'}`;
+  }
+}
+
+function activeTerritoryForContract(code: string): string | undefined {
+  try {
+    const map = JSON.parse(import.meta.env.VITE_TERRITORY_CONTRACTS as string) as Record<string, string>;
+    return /^C[A-Z2-7]{55}$/.test(map[code] ?? '') ? map[code] : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function setActiveTerritory(code: string): void {
+  selectTerritory(code);
+  const info = territoryInfo(code);
+  const contract = activeContractId();
+  root!.querySelector<HTMLElement>('#contract-status')!.innerHTML = `<i class="status-dot"></i>${contract ? 'Contrato configurado en Testnet' : 'Contrato pendiente de configuración'}`;
+  root!.querySelector<HTMLElement>('#territory-caption')!.textContent = `${info.name} · ${info.capital}${info.pilot ? ' · piloto de interfaz' : ' · instancia por preparar'}`;
+  root!.querySelector<HTMLElement>('#active-place')!.textContent = `${info.capital}, ${info.name} · escenario sintético`;
+  root!.querySelector<HTMLElement>('.hero-stamp strong')!.textContent = info.name.toUpperCase();
+  root!.querySelector<HTMLElement>('.hero-stamp small')!.textContent = info.pilot ? 'ESCENARIO PILOTO' : 'TERRITORIO EN PREPARACIÓN';
+  root!.querySelectorAll<HTMLButtonElement>('[data-territory]').forEach((button) => {
+    const selected = button.dataset.territory === code;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+  root!.querySelector<HTMLSelectElement>('#territory')!.value = code;
+  message.textContent = `${info.name} (${info.capital}): ${contract ? 'contrato configurado' : 'contrato pendiente'}; ${territoryAdminReady(code) ? 'firmantes configurados' : 'configura administradores por territorio'} .`;
+}
+
+root.querySelectorAll<HTMLButtonElement>('[data-territory]').forEach((button) => {
+  button.addEventListener('click', () => setActiveTerritory(button.dataset.territory!));
+});
+updateTerritoryReadiness();
 
 connectButton.addEventListener('click', async () => {
   message.textContent = 'Solicitando acceso a Freighter…';
@@ -189,12 +248,12 @@ async function adminAction(action: () => Promise<void>) {
     root!.querySelector<HTMLInputElement>('#admin-otp')!.value = '';
     root!.querySelector<HTMLInputElement>('#admin-token')!.value = '';
     const { getAdminSigningConfig } = await import('./stellar');
-    const admin = getAdminSigningConfig();
+    const admin = getAdminSigningConfig(territoryInfo().code);
     if (!admin.account || !/^G[A-Z2-7]{55}$/.test(admin.account)) {
       throw new Error('Configura VITE_ADMIN_ACCOUNT con la cuenta G de administración multisig.');
     }
-    if (admin.signers.length < admin.threshold || admin.signers.slice(0, admin.threshold).some((address) => !/^G[A-Z2-7]{55}$/.test(address))) {
-      throw new Error(`Configura en VITE_ADMIN_SIGNERS al menos ${admin.threshold} direcciones G distintas, en orden de firma.`);
+    if (admin.threshold !== 5 || admin.signers.length !== 8 || new Set(admin.signers).size !== 8 || admin.signers.some((address) => !/^G[A-Z2-7]{55}$/.test(address))) {
+      throw new Error(`Configura para ${territoryInfo().name} una cuenta G y exactamente ocho firmantes G distintos en VITE_TERRITORY_ADMINS, con umbral 5.`);
     }
     adminSource = admin.account;
     adminSigners = admin.signers.slice(0, admin.threshold);

@@ -8,7 +8,7 @@ Medellín, Antioquia, es el escenario piloto sintético de esta entrega. Los och
 
 ## Territorio
 
-El catálogo de escenarios de práctica contiene doce departamentos: Amazonas, Antioquia, Arauca, Atlántico, Bolívar, Boyacá, Caldas, Cauca, Chocó, Cundinamarca, Santander y Valle del Cauca. El modelo no implica instalación de doce nodos de consenso ni cubrimiento de todos los municipios. En la siguiente entrega se proyecta priorizar cinco de esos doce: Antioquia, Cundinamarca, Valle del Cauca, Atlántico y Santander; la lista es una propuesta pendiente de aprobación del equipo.
+El alcance de esta entrega creció a diez departamentos seleccionables: Antioquia (Medellín, piloto de interfaz), Cundinamarca (Bogotá), Valle del Cauca (Cali), Atlántico (Barranquilla), Santander (Bucaramanga), Bolívar (Cartagena), Boyacá (Tunja), Caldas (Manizales), Cauca (Popayán) y Chocó (Quibdó). La app asigna a cada uno un código territorial, estado de preparación y configuración independiente para contract ID y administradores. Esto no implica que existan contratos desplegados: al corte, las diez instancias están pendientes de cuentas, llaves públicas y despliegue en Testnet. Tampoco crea diez nodos validadores ni cubre todos los municipios; la red de consenso es Stellar.
 
 ## Arquitectura y firmas
 
@@ -20,7 +20,7 @@ Freighter es el único firmante implementado. No se verificó soporte de Circle 
 
 La interfaz ya incorpora fotografías de Medellín, Guatapé y el Valle de Aburrá recibidas para el diseño, con adaptación móvil y el prototipo React/Replit utilizado como referencia visual. El ZIP no incluye un archivo o URL fuente de Figma. La guía Vercel de `frontend/` publica la interfaz estática y no el contrato ni Django. Django tiene metadatos y contenedor para un Docker Space de score numérico; antes de ponerlo público con TOTP se requiere una protección WAF externa.
 
-La fase siguiente propone cinco territorios de los doce modelados (Antioquia, Cundinamarca, Valle del Cauca, Atlántico y Santander), pendiente de aprobación del equipo. Se desplegará una instancia contractual por territorio y se añadirá su contract ID a `VITE_TERRITORY_CONTRACTS`; no se levantarán validadores propios por departamento.
+Los diez departamentos están ahora representados en el frontend con capital, selección y estado de contrato/firmantes. Para activar un departamento, el equipo debe desplegar su instancia Soroban con la cuenta administrativa elegida y configurar el ID comprobado en `VITE_TERRITORY_CONTRACTS`, más su cuenta y ocho direcciones públicas de firmantes en `VITE_TERRITORY_ADMINS`. La interfaz separa la configuración por territorio y mantiene el formato anterior solo para el piloto de Antioquia. Ninguna clave privada se configura en Vercel. La lista de diez está implementada; cuentas, despliegue y transacciones reales siguen pendientes de autorización y acceso a credenciales.
 
 ## Enlaces del repositorio
 

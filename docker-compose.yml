@@ -24,6 +24,8 @@ services:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY in .env}
       ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
       TOTP_SECRET: ${TOTP_SECRET:-}
+      PORT: "8001"
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,waf,python-lb,python-a,python-b}
       IDENTITY_CORS_ORIGINS: ${IDENTITY_CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
     expose: ["8001"]
     healthcheck:

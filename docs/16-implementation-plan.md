@@ -8,53 +8,52 @@
 
 Consensus es un laboratorio educativo para Stellar: contrato Soroban en Rust, cliente TypeScript/Freighter y un servicio off-chain Django que evalúa vectores numéricos sintéticos y verifica un OTP administrativo. Nginx distribuye solicitudes entre dos instancias Python y ModSecurity/OWASP CRS aplica reglas WAF delante del balanceador. Estos contenedores son servicios centralizados desplegados por el equipo; no son validadores Stellar ni quedan descentralizados por estar escritos en Rust. La descentralización del estado y ejecución del contrato la aporta la red Stellar.
 
-**Estado entrega 2:** Medellín es el piloto preparado, sin contrato desplegado ni transacción publicada. El cliente ya construye, simula, firma y envía invocaciones a Testnet cuando se proporciona el contrato, las cuentas y las wallets. Freighter es el proveedor funcional. Circle no firma Soroban en esta implementación: Circle Wallets no declara Stellar como cadena soportada. Los ocho perfiles son firmantes de una cuenta multisig propuesta 5-de-8; son administradores de aplicación, no validadores. Django/TOTP y WAF corren en un laboratorio local y no forman parte de la validación de voto on-chain. La puntuación Python es sintética y no procesa rostros.
+**Estado entrega 2:** Medellín es el piloto preparado, sin contrato desplegado ni transacción publicada. El cliente ya construye, simula, firma y envía invocaciones a Testnet cuando se proporciona el contrato, las cuentas y las wallets. Freighter es el proveedor funcional. No se verificó soporte Circle Wallets para firmar XDR Soroban en este flujo, por lo que Circle no se integra. Los ocho perfiles son firmantes de una cuenta multisig propuesta 5-de-8; son administradores de aplicación, no validadores. Django/TOTP y WAF corren en un laboratorio local y no forman parte de la validación de voto on-chain. La puntuación Python es sintética y no procesa rostros.
 
 ```text
 Navegador TypeScript
-  ├─ autenticación local (WebAuthn/TOTP para demo)
+  ├─ controles administrativos de demo (token + Django/TOTP)
   ├─ WalletGateway + Stellar SDK
   └─ API de lectura/verificación
           │
-          ├── Soroban/Rust: estado, reglas, eventos y unicidad
-          └── Python/FastAPI (opcional): elegibilidad experimental
-                    └── base de datos efímera; sin datos biométricos reales
+          ├── Stellar Testnet → contrato Soroban/Rust: reglas y conteo
+          └── OWASP CRS → Nginx → dos procesos Django
+                    └── TOTP/score numérico sintético; no toma decisiones electorales
 ```
 
 ### Responsabilidad por tecnología
 
 | Tecnología | Uso en Consensus | Fuera del MVP |
 | --- | --- | --- |
-| Stellar/Soroban | Registro verificable, estados, reglas y eventos | Mainnet y elecciones reales |
-| Rust | Contrato pequeño, seguro y testeable | Lógica de negocio del frontend |
-| TypeScript | UI, SDK, firma, consulta y pruebas de integración | Guardar secretos en navegador |
+| Stellar/Soroban | Estado replicado, reglas del contrato y transacciones públicas en Testnet | Mainnet y elecciones reales |
+| Rust | Contrato Soroban: administración, opciones, autorizados, voto único y conteo | Ejecutar/administrar servidores Python |
+| TypeScript | UI, SDK Stellar, Freighter, preparación/envío y evidencia | Guardar secretos en navegador |
 | Python/Django | Score numérico sintético y verificación OTP para UI de demo | Reconocimiento facial o decidir/contar votos |
 | PostgreSQL/SQLite | Persistencia mínima off-chain, si hace falta | Fuente de verdad del resultado |
 | TOTP/Django | Filtro de conveniencia para controles administrativos de demo | Sustituir firma multisig Stellar o garantizar seguridad productiva |
 | Docker, Nginx, OWASP CRS | Dos workers Python, balanceador y WAF local | Descentralizar los servicios o una operación productiva |
-| Terraform | Infraestructura de laboratorio opcional | Crear una red Stellar administrada |
-| Kubernetes/Nginx | No necesarios para el MVP | Escalamiento futuro, tras medir carga |
+| Terraform | No configurado | Crear una red Stellar administrada |
+| Docker, Nginx, OWASP CRS | Dos instancias Django tras balanceador y WAF, solo en laboratorio local | Descentralizar servidores o desplegar sin seguridad adicional |
 
 ## Contrato Soroban mínimo
 
-El contrato tendrá una sola elección activa y mantendrá únicamente datos no sensibles:
+El contrato actual crea una instancia por elección y territorio mediante `__constructor(admin, territory)`. Mantiene solo estado y datos sintéticos:
 
-- `create_election`, `add_option`, `open`, `close`.
-- `authorize_voter` con identificador hash de prueba.
-- `cast_vote` con comprobación de estado, autorización y voto único.
-- `result` y eventos de auditoría.
-- Administrador separado de las cuentas votantes; para acciones administrativas se evaluará multisig.
+- `add_option`, `authorize_voter`, `open`, `close`.
+- `cast(voter, option)` con cuenta autorizada, elección abierta y voto único.
+- `status`, `total_votes`, `result` y eventos públicos.
+- El administrador se protege con `require_auth`; se propone 5-de-8 al configurar la cuenta en Stellar. El cliente no puede crear ese umbral on-chain por sí solo.
 
 El voto se diseñará como demostración verificable, no como voto secreto. Publicar en cadena una relación entre identidad y opción puede revelar la preferencia; por eso no se usarán personas reales.
 
-## Privacidad y Face API
+## Privacidad y score numérico
 
-La biometría no es un requisito del MVP. El flujo de aprendizaje será:
+No hay reconocimiento facial implementado: Django valida cuatro valores numéricos sintéticos y no acepta imágenes. La biometría no es requisito del MVP. Un experimento futuro requeriría evaluación de privacidad y seguridad separada. El flujo actual:
 
-1. Generar embeddings sintéticos o datos de prueba.
-2. Ejecutar una comparación fuera de cadena en Python.
-3. Devolver solo un resultado de elegibilidad de corta duración.
-4. Registrar en Stellar un identificador opaco, nunca la imagen, embedding o score.
+1. Enviar números sintéticos a Django para calcular una distancia de prueba.
+2. Usar token + TOTP solo para habilitar acciones administrativas en la interfaz.
+3. Mantener reglas y conteo en el contrato; el score no decide elegibilidad on-chain.
+4. No enviar imágenes, score, OTP ni identificadores personales a Stellar.
 
 El cifrado homomórfico y las pruebas de conocimiento cero se reservan para una investigación posterior. No se debe afirmar que una API facial o un hash proporcionan anonimato, anti-coerción o identidad legal.
 
@@ -63,6 +62,12 @@ El cifrado homomórfico y las pruebas de conocimiento cero se reservan para una 
 El equivalente educativo de Ganache no es otra cadena EVM: se usará `stellar container start local` (Stellar Quickstart con RPC), Stellar CLI y Stellar Lab. La prueba de una transacción se hará con `simulateTransaction`; se guardarán en `docs/evidence/` los recursos, `resourceFee`, versión del protocolo y fecha. Testnet servirá para la demostración compartida; Futurenet solo si una funcionalidad experimental lo exige.
 
 Las tarifas de Soroban dependen de instrucciones, lecturas/escrituras, bytes, eventos y almacenamiento. Por ello no se publicará un “gas fijo”: cada escenario tendrá una medición reproducible y un presupuesto máximo definido por el equipo.
+
+## Interfaz y hosting
+
+El frontend mantiene el cliente TypeScript existente e incorpora la dirección visual del prototipo Replit (paleta cálida, fotografías adjuntas del territorio, navegación y paneles de actividad). No se importó el workspace React completo porque tiene dependencias Replit/pnpm y una interfaz Soroban distinta. En los archivos recibidos no aparece una URL ni exportación fuente Figma; KANBAN mantiene esa alineación pendiente.
+
+Vercel publica únicamente la interfaz estática con `frontend/` como raíz; no despliega Rust, Soroban ni Django. La guía está en `frontend/DEPLOYMENT.md`. Hugging Face Spaces puede ejecutar el contenedor Django como Docker Space, pero una Space pública directa no incluye el WAF/limitador configurado en Compose; no publicar el endpoint TOTP allí hasta colocar protección externa y configurar CORS/hosts. Compose local sigue siendo la topología que combina Django x2, Nginx y OWASP CRS.
 
 ## AWS y operación (OPEX)
 

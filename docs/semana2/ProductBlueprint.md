@@ -27,7 +27,7 @@ Los administradores representan funciones de laboratorio, no titulares reales: a
 
 **Central:** elección sintética de Medellín; roles de demostración; cuenta administrativa con autorización; participante habilitado; voto único; abrir/cerrar; consulta de estado y evidencia Stellar; integración TypeScript y firma Freighter en red de prueba. El modelo contempla 12 departamentos colombianos para organizar escenarios, sin desplegar 12 elecciones ni nodos de consenso. “Nodo” aquí significa perfil administrativo de aplicación, no validador Stellar.
 
-**Estado técnico de esta entrega:** el cliente TypeScript implementa simulación, firma Freighter, envío a Stellar Testnet, consulta del resultado y medición de fees/recursos, pero necesita un contract ID y cuentas Testnet configuradas. Aún no se desplegó contrato ni existe transacción publicada. El servicio Django valida OTP TOTP para habilitar los botones administrativos; esto no reemplaza la multisig ni una autenticación robusta de producción. El laboratorio tiene dos instancias Django tras Nginx `least_conn` y OWASP CRS delante. Python solo compara vectores numéricos ficticios: no recibe imágenes ni reconoce rostros. Circle Wallets no declara soporte de Stellar, así que no se ofrece como firmante. La administración propuesta es 5-de-8: ocho claves de prueba distintas, cinco firmas por acción. Son administradores de aplicación, no nodos validadores.
+**Estado técnico de esta entrega:** el cliente TypeScript implementa simulación, firma Freighter, envío a Stellar Testnet, consulta del resultado y medición de fees/recursos, pero necesita un contract ID y cuentas Testnet configuradas. Aún no se desplegó contrato ni existe transacción publicada. El servicio Django valida OTP TOTP para habilitar los botones administrativos; esto no reemplaza la multisig ni una autenticación robusta de producción. El laboratorio tiene dos instancias Django tras Nginx `least_conn` y OWASP CRS delante. Python solo compara vectores numéricos ficticios: no recibe imágenes ni reconoce rostros. Circle no se integró porque no se verificó soporte de firma XDR Soroban para este flujo; Circle Mint y Circle Wallets son productos distintos. La administración propuesta es 5-de-8: ocho claves de prueba distintas, cinco firmas por acción. Son administradores de aplicación, no nodos validadores.
 
 ## Operación y siguiente fase
 
@@ -55,20 +55,22 @@ Tablero versionado provisional: [KANBAN.md](../../KANBAN.md). El entregable del 
 ## Arquitectura inicial
 
 ```text
-Interfaz web TypeScript
-  ├─ adaptador WalletGateway (Freighter/Testnet; Circle pendiente de compatibilidad)
-  ├─ validación de red, construcción y lectura de transacciones
-  └─ enlaces al explorador Stellar Expert Testnet
-                 │ firma de cuenta / invocación Soroban
-Contrato Rust/Soroban ─ estados, autorización y voto único
-                 │
-        RPC Stellar local / Testnet
+Interfaz TypeScript + Vite
+  ├─ visual inspirado en el prototipo Replit y fotografías adjuntas de Medellín
+  ├─ Freighter + Stellar SDK: Testnet, simulación, firma y envío
+  └─ Django/TOTP vía endpoint HTTPS protegido (administración de demo)
+                    │
+        Soroban/Rust en Stellar Testnet
+          └─ estados, autorización, voto único y conteo
 
-Futuro aislado: Django + TOTP/WAF y experimentos faciales sintéticos,
-fuera de la ruta de voto y sin imágenes/plantillas en la cadena.
+Python/Django: vector numérico sintético
+Docker Compose local: 2 Django → Nginx least_conn → OWASP CRS WAF
+Web estática: frontend/ con guía Vercel
 ```
 
-TypeScript coordina interfaz y SDK; Rust ejecuta reglas deterministas del contrato; Stellar almacena el estado y eventos públicos de prueba. Los perfiles y TOTP off-chain no equivalen a validación de identidad. Ocho administradores no son ocho validadores de Stellar: Stellar mantiene su propio protocolo de consenso y este proyecto no opera una red de validadores. Una cuenta multifirma requiere configurar umbrales y claves en la cuenta Stellar y probarlas por separado; el texto del PDF no acredita firmas institucionales.
+TypeScript coordina interfaz y SDK; Rust ejecuta reglas deterministas del contrato; Stellar replica el estado y eventos públicos de prueba. La interfaz incorpora una paleta verde/cálida, fotos entregadas de Medellín, Guatapé y el Valle de Aburrá, tarjetas de actividad y navegación para móvil. No se introdujo el workspace React completo del ZIP porque conserva plugins Replit, usa pnpm y define otro contrato. No venía una URL ni un archivo fuente Figma con los adjuntos; el Kanban mantiene esa parte pendiente de alineación. Los perfiles y TOTP off-chain no equivalen a validación de identidad. Ocho administradores no son ocho validadores de Stellar. Una cuenta multifirma requiere configurar umbrales y claves en la cuenta Stellar y probarlas por separado; el PDF no acredita firmas institucionales.
+
+La guía [Vercel](../../frontend/DEPLOYMENT.md) publica solo el cliente desde la carpeta `frontend/`; no despliega Soroban ni Django. Django puede ejecutarse como Docker Space para un demo sintético, pero una Space pública no trae el WAF/limitador de este Compose. No configurar ahí secretos de TOTP/API admin hasta poner una protección externa y revisar CORS/hosts.
 
 ## Uso de Stellar y justificación
 

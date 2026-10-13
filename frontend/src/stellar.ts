@@ -25,6 +25,23 @@ const adminAccount = import.meta.env.VITE_ADMIN_ACCOUNT as string | undefined;
 const configuredSigners = (import.meta.env.VITE_ADMIN_SIGNERS as string | undefined)
   ?.split(',').map((address) => address.trim()).filter(Boolean) ?? [];
 const adminThreshold = Number(import.meta.env.VITE_ADMIN_THRESHOLD ?? '5');
+type TerritoryAdmin = { account: string; signers: string[]; threshold?: number };
+const territoryAdmins = parseTerritoryAdmins(import.meta.env.VITE_TERRITORY_ADMINS as string | undefined);
+
+function parseTerritoryAdmins(raw?: string): Record<string, TerritoryAdmin> {
+  if (!raw?.trim()) return {};
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    return Object.fromEntries(Object.entries(parsed).flatMap(([code, value]) => {
+      if (!value || typeof value !== 'object') return [];
+      const item = value as Partial<TerritoryAdmin>;
+      if (typeof item.account !== 'string' || !Array.isArray(item.signers) || !item.signers.every((signer) => typeof signer === 'string')) return [];
+      return [[code, { account: item.account, signers: item.signers, threshold: item.threshold }]];
+    }));
+  } catch {
+    return {};
+  }
+}
 
 export function configuredContract(): string | undefined {
   return activeContractId();
@@ -139,4 +156,10 @@ export async function readDemoValue(
 
 export const asAddress = (value: string) => nativeToScVal(value, { type: 'address' });
 export const asSymbol = (value: string) => nativeToScVal(value, { type: 'symbol' });
-export const getAdminSigningConfig = () => ({ account: adminAccount, signers: configuredSigners, threshold: adminThreshold });
+export const getAdminSigningConfig = (territory = activeTerritoryCode()) => {
+  const configured = territoryAdmins[territory];
+  // Keep the original single-territory setup compatible, without reusing its authority for other departments.
+  const legacyPilot = territory === 'CO-ANT-MED' ? { account: adminAccount, signers: configuredSigners, threshold: adminThreshold } : undefined;
+  const selected = configured ?? legacyPilot ?? { account: undefined, signers: [], threshold: 5 };
+  return { ...selected, threshold: Number(selected.threshold ?? 5) };
+};

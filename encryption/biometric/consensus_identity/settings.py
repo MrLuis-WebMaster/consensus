@@ -6,12 +6,12 @@ if len(SECRET_KEY) < 32:
 
 DEBUG = False
 ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "waf",
-    "python-lb",
-    "python-a",
-    "python-b",
+    host.strip()
+    for host in os.environ.get(
+        "DJANGO_ALLOWED_HOSTS",
+        "localhost,127.0.0.1,waf,python-lb,python-a,python-b",
+    ).split(",")
+    if host.strip()
 ]
 ROOT_URLCONF = "consensus_identity.urls"
 WSGI_APPLICATION = "consensus_identity.wsgi.application"
@@ -38,3 +38,4 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CORS_ALLOWED_ORIGINS = os.environ.get(
     "IDENTITY_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
 ).split(",")
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS if origin.strip()]

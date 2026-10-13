@@ -1,38 +1,40 @@
-# Consensus — Kanban entrega 2
+# Consensus · Kanban del laboratorio
 
-Backlog versionado para el laboratorio. El PDF solicita GitHub Projects; el acceso actual de GitHub no incluye `read:project`, así que este archivo es la vista reproducible y no pretende ser un tablero remoto ya creado. Crear/migrar al Project del equipo cuando el propietario habilite alcance Projects. Criterios de terminado: aceptación documentada, validación, evidencia y revisión.
+Tablero de seguimiento del MVP. Las tarjetas no se marcan como terminadas hasta que exista validación y evidencia reproducible. El tablero versionado complementa GitHub Projects; no finge que ese Project remoto ya existe.
 
-## Por hacer
+## Hecho y revisado
 
-- [ ] KAN-001 — Alinear Product Blueprint con la rúbrica en `docs/semana2/ProductBlueprint.md`; validar historias priorizadas con el equipo.
-- [ ] KAN-005 — Revisar Circle solo si el proveedor incorpora soporte firmado/documentado para XDR Soroban en Stellar; actualmente Circle no está implementado como wallet de esta dapp.
-- [ ] KAN-006 — Desplegar demo sintética Medellín en Stellar Testnet y registrar direcciones, hash y enlaces al explorador, sin claves.
-- [ ] KAN-007 — Modelar 12 departamentos como escenarios de laboratorio; preparar alcance siguiente para Antioquia, Cundinamarca, Valle, Atlántico y Santander, sujeto a aprobación.
-- [ ] KAN-008 — Definir roles de administración/auditoría de demo y verificar autoridades/fuentes antes de atribuir facultades a entidades reales.
-- [ ] KAN-009 — Provisionar en Testnet las ocho cuentas de firma e instalar/validar el umbral 5-de-8 con wallets controladas por el equipo.
-- [ ] KAN-011 — Revisar amenazas y endurecer el WAF/Django antes de cualquier despliegue público; la configuración actual es solo laboratorio local.
-- [ ] KAN-013 — Añadir pruebas de contrato, cliente e integración; vincular cada caso con RF/PA y evidencia repetible.
-- [ ] KAN-014 — Migrar tarjetas a GitHub Projects con estados, responsables, aceptación y enlace desde el Blueprint.
-- [ ] KAN-015 — Recolectar historias individuales (5–7 por integrante, commit de autoría propio) sin atribuirlas a terceros.
+- [x] KAN-001 — Blueprint de la entrega 2 actualizado para Medellín, datos sintéticos, limitaciones y alcance territorial.
+- [x] KAN-002 — Contrato Soroban Rust con administración, autorización, estados, voto único y conteos; pruebas unitarias pasan en GitHub Actions.
+- [x] KAN-003 — Cliente TypeScript valida Testnet, simula, firma, envía y consulta operaciones del contrato configurado.
+- [x] KAN-004 — Freighter integrado como wallet para firma en Testnet; soporte 5-de-8 en interfaz.
+- [x] KAN-007 — Diez departamentos en el selector y catálogo; contrato y administración configurables por territorio.
+- [x] KAN-008 — Roles descritos como perfiles didácticos sin atribución de autoridad a entidades públicas.
+- [x] KAN-010 — Django implementa TOTP de demo y vector numérico sintético; dos réplicas Python detrás de Nginx y WAF OWASP CRS en Compose.
+- [x] KAN-012 — Spike numérico sintético; no procesa rostros ni biometría.
+- [x] KAN-016 — Wiki, blueprint, tablero y guía local actualizados para el laboratorio de diez departamentos y el piloto sintético de Medellín.
+- [x] KAN-017 — Visual Replit adaptado al cliente TypeScript existente, con fotos locales, navegación y layout responsive.
+- [x] KAN-019 — Configuración Vercel para `frontend/` con instalación reproducible y guía de variables públicas/secretos.
+- [x] KAN-020 — Contenedor Django preparado para Docker Spaces con puerto configurable; la guía limita el uso público a datos sintéticos sin TOTP/WAF.
 
-## En revisión
+## En progreso
 
-- [ ] KAN-002 — Contrato Soroban: administración, estados, autorización de votante, voto único y conteo; pruebas Rust pendientes de CI, Rust no instalado localmente.
-- [ ] KAN-003 — Cliente TypeScript simula, firma, envía, consulta y presenta hash y costos de transacción; build local exitoso.
-- [ ] KAN-004 — Firma Freighter Testnet con comprobación de red y soporte del umbral 5-de-8 en interfaz.
-- [ ] KAN-010 — Django + token y OTP TOTP, vector numérico sintético, dos instancias y Nginx de balanceo.
-- [ ] KAN-012 — Spike numérico sintético sin imágenes ni rostros; no implica reconocimiento biométrico.
-- [ ] KAN-016 — Preparar esta entrega y demo Medellín con identidades y opciones ficticias.
+- [ ] KAN-018 — Alinear el diseño final con el archivo o enlace fuente de Figma; la entrega ZIP revisada no contiene exportación ni URL de Figma.
 
 ## Bloqueado por requisito externo
 
-- [ ] KAN-006 — Desplegar contrato y publicar transacción Testnet: requiere Stellar CLI/Rust instalados y una cuenta de laboratorio controlada por el equipo. No se han fabricado direcciones, hashes ni evidencias.
-- [ ] KAN-014 — Crear tablero GitHub Projects remoto: el token disponible no tiene alcance `project`; KANBAN versionado queda como tablero de respaldo.
-
-## Hecho
-
-<!-- Marcar únicamente tarjetas implementadas y verificadas por el equipo. -->
+- [ ] KAN-005 — Circle como firmante Soroban requiere soporte oficial de firma Stellar; mantener Freighter como wallet operativa.
+- [ ] KAN-006 — Desplegar contrato y publicar transacción Testnet requiere la CLI/herramientas de build y una cuenta Testnet firmante controlada por el equipo. No hay aún ID ni hash de red.
+- [ ] KAN-009 — Provisionar ocho cuentas independientes y configurar/validar el umbral on-chain 5-de-8; la configuración de UI no sustituye `set-options` en Stellar.
+- [ ] KAN-011 — Revisión de amenazas y endurecimiento previo a exponer Django/WAF públicamente; Compose es solo laboratorio.
+- [ ] KAN-013 — Pruebas de integración end-to-end con wallet y contrato desplegado, pendientes de Testnet.
+- [ ] KAN-014 — Migrar tarjetas a GitHub Projects cuando el token tenga permisos `project`.
+- [ ] KAN-015 — Historias individuales de cada integrante deben ser redactadas/validadas por sus autores.
 
 ## Alcance territorial
 
-Se modelan 12 departamentos de Colombia: Amazonas, Antioquia, Arauca, Atlántico, Bolívar, Boyacá, Caldas, Cauca, Chocó, Cundinamarca, Santander y Valle del Cauca. Es un catálogo sintético de escenarios, no cobertura electoral ni datos de municipios. Entrega actual: Medellín, Antioquia. Siguiente entrega propuesta: Antioquia, Cundinamarca, Valle del Cauca, Atlántico y Santander; cinco de los doce, sujetos a confirmación del equipo.
+Diez departamentos en el alcance de esta entrega: Antioquia (Medellín, piloto de interfaz), Cundinamarca (Bogotá), Valle del Cauca (Cali), Atlántico (Barranquilla), Santander (Bucaramanga), Bolívar (Cartagena), Boyacá (Tunja), Caldas (Manizales), Cauca (Popayán) y Chocó (Quibdó). Cada uno tiene su propio código, entrada seleccionable y espacio independiente para contract ID y cuenta/firmantes administradores. La interfaz no configura ni despliega esas cuentas: al corte, los diez contratos y los diez perfiles de administración siguen pendientes de credenciales y despliegue. Son escenarios de aplicación, no validadores propios; todas las instancias usarían Stellar Testnet.
+
+## Definition of done
+
+Cada feature necesita build/tests aplicables, aceptación documentada, registro de limitaciones y evidencia real. Nunca guardar semillas, claves privadas, OTP, datos faciales o votos reales en GitHub. Un enlace de Stellar Explorer solo se agrega tras confirmación de la transacción.

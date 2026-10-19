@@ -1,0 +1,6 @@
+---
+- name: Restart Consensus Services
+  ansible.builtin.command:
+    cmd: docker compose --profile "{{ consensus_compose_profile }}" up -d --remove-orphans
+    chdir: "{{ consensus_app_dir }}"
+  changed_when: true

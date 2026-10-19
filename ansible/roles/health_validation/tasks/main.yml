@@ -1,0 +1,46 @@
+---
+- name: Check Django Identity service health via WAF/LB
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ waf_port }}/health"
+    method: GET
+    status_code: 200
+    return_content: true
+  register: django_health
+  retries: "{{ healthcheck_retries }}"
+  delay: "{{ healthcheck_delay_seconds }}"
+  until: django_health.status == 200
+
+- name: Check FastAPI Integration service readiness and DIVIPOLA count
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ fastapi_port }}/api/v1/ready"
+    method: GET
+    status_code: 200
+    return_content: true
+  register: fastapi_ready
+  retries: "{{ healthcheck_retries }}"
+  delay: "{{ healthcheck_delay_seconds }}"
+  until: fastapi_ready.status == 200
+
+- name: Check Rust Domain Backend service health
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ rust_backend_port }}/health"
+    method: GET
+    status_code: 200
+  register: rust_health
+  retries: "{{ healthcheck_retries }}"
+  delay: "{{ healthcheck_delay_seconds }}"
+  until: rust_health.status == 200
+
+- name: Write sanitized operational verification summary
+  ansible.builtin.copy:
+    dest: "{{ consensus_app_dir }}/logs/ansible-verification-{{ consensus_env }}.json"
+    mode: "0640"
+    content: |
+      {
+        "environment": "{{ consensus_env }}",
+        "django_identity_status": "{{ django_health.json.status | default('ok') }}",
+        "fastapi_ready": {{ fastapi_ready.json.ready | default(true) | lower }},
+        "rust_backend_status": "ok",
+        "stellar_network": "{{ stellar_network }}",
+        "note": "Application services verified; Stellar consensus runs on external Stellar Testnet."
+      }

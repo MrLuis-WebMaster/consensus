@@ -1,5 +1,13 @@
 #![no_std]
 
+//! Consensus Colombia — Soroban Voting Smart Contract (Educational MVP on Stellar Testnet)
+//!
+//! PRIVACY & BALLOT SECRECY LIMITATION:
+//! On-chain invocations and events (`cast`, `VOTE`) are publicly visible on the Stellar ledger
+//! and allow observers to reconstruct which `Address` selected which `Symbol` option.
+//! Encrypting data in the frontend does NOT make an on-chain transaction secret.
+//! NEVER store real names, emails, document numbers, biometric templates, or real votes here.
+
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, Symbol,
 };
@@ -11,8 +19,11 @@ pub struct Voting;
 #[derive(Clone)]
 enum Key {
     Admin,
+    ProcessId,
     Open,
     Closed,
+    OpensAt,
+    ClosesAt,
     OptionCount,
     Territory,
     Option(Symbol),
@@ -37,21 +48,46 @@ pub enum Error {
     NotAuthorized = 11,
     AlreadyVoted = 12,
     ElectionClosed = 13,
+    OutOfVotingWindow = 14,
+    InvalidTimeWindow = 15,
 }
 
 #[contractimpl]
 impl Voting {
     /// Bind administration at deployment time so no public initialize race exists.
-    /// Configure that G-account with Stellar signer weights/thresholds for multisig.
+    /// Configure that G-account with Stellar signer weights/thresholds (5-of-8) for multisig.
     pub fn __constructor(env: Env, admin: Address, territory: Symbol) {
         admin.require_auth();
         let instance = env.storage().instance();
         instance.set(&Key::Admin, &admin);
         instance.set(&Key::Territory, &territory);
+        instance.set(&Key::ProcessId, &symbol_short!("DEFAULT"));
         instance.set(&Key::Open, &false);
         instance.set(&Key::Closed, &false);
         instance.set(&Key::OptionCount, &0_u32);
         instance.set(&Key::TotalVotes, &0_u32);
+    }
+
+    /// Configures a unique process identifier and optional ledger timestamp window [opens_at, closes_at].
+    pub fn configure_process(
+        env: Env,
+        process_id: Symbol,
+        opens_at: u64,
+        closes_at: u64,
+    ) -> Result<(), Error> {
+        require_admin(&env)?;
+        ensure_configurable(&env)?;
+        if closes_at > 0 && closes_at <= opens_at {
+            return Err(Error::InvalidTimeWindow);
+        }
+        let instance = env.storage().instance();
+        instance.set(&Key::ProcessId, &process_id);
+        instance.set(&Key::OpensAt, &opens_at);
+        instance.set(&Key::ClosesAt, &closes_at);
+        instance.extend_ttl(30_000, 500_000);
+        env.events()
+            .publish((symbol_short!("CONFIG"), process_id), (opens_at, closes_at));
+        Ok(())
     }
 
     pub fn add_option(env: Env, option: Symbol) -> Result<(), Error> {
@@ -59,7 +95,7 @@ impl Voting {
         ensure_configurable(&env)?;
         let instance = env.storage().instance();
         let count: u32 = instance.get(&Key::OptionCount).unwrap_or(0);
-        if count >= 8 {
+        if count >= 12 {
             return Err(Error::TooManyOptions);
         }
         let key = Key::Option(option.clone());
@@ -115,6 +151,17 @@ impl Voting {
         if !instance.get::<_, bool>(&Key::Open).unwrap_or(false) {
             return Err(Error::NotOpen);
         }
+
+        // Enforce optional ledger timestamp window when configured
+        let opens_at: u64 = instance.get(&Key::OpensAt).unwrap_or(0);
+        let closes_at: u64 = instance.get(&Key::ClosesAt).unwrap_or(0);
+        if opens_at > 0 || closes_at > 0 {
+            let now = env.ledger().timestamp();
+            if (opens_at > 0 && now < opens_at) || (closes_at > 0 && now > closes_at) {
+                return Err(Error::OutOfVotingWindow);
+            }
+        }
+
         if !env.storage().persistent().has(&Key::Authorized(voter.clone())) {
             return Err(Error::NotAuthorized);
         }
@@ -171,6 +218,13 @@ impl Voting {
         env.storage().instance().get(&Key::Territory).unwrap()
     }
 
+    pub fn process_id(env: Env) -> Symbol {
+        env.storage()
+            .instance()
+            .get(&Key::ProcessId)
+            .unwrap_or(symbol_short!("DEFAULT"))
+    }
+
     pub fn result(env: Env, option: Symbol) -> Result<u32, Error> {
         if !env
             .storage()
@@ -219,7 +273,11 @@ fn ensure_configurable(env: &Env) -> Result<(), Error> {
 #[cfg(test)]
 mod test {
     use super::{Error, Voting, VotingClient};
-    use soroban_sdk::{symbol_short, testutils::Address as _, Address, Env};
+    use soroban_sdk::{
+        symbol_short,
+        testutils::{Address as _, Ledger},
+        Address, Env,
+    };
 
     #[test]
     fn authorized_voter_can_vote_once_and_results_are_counted() {
@@ -255,7 +313,10 @@ mod test {
         client.add_option(&symbol_short!("B"));
         client.open();
 
-        assert_eq!(client.try_cast(&voter, &symbol_short!("A")), Err(Ok(Error::NotAuthorized)));
+        assert_eq!(
+            client.try_cast(&voter, &symbol_short!("A")),
+            Err(Ok(Error::NotAuthorized))
+        );
     }
 
     #[test]
@@ -273,7 +334,10 @@ mod test {
         client.open();
         client.cast(&voter, &symbol_short!("A"));
 
-        assert_eq!(client.try_cast(&voter, &symbol_short!("B")), Err(Ok(Error::AlreadyVoted)));
+        assert_eq!(
+            client.try_cast(&voter, &symbol_short!("B")),
+            Err(Ok(Error::AlreadyVoted))
+        );
     }
 
     #[test]
@@ -287,5 +351,54 @@ mod test {
         client.add_option(&symbol_short!("A"));
 
         assert_eq!(client.try_open(), Err(Ok(Error::OptionsIncomplete)));
+    }
+
+    #[test]
+    fn rejects_votes_before_opening_after_closing_and_outside_time_window() {
+        let env = Env::default();
+        let admin = Address::generate(&env);
+        env.mock_all_auths();
+        let contract_id = env.register(Voting, (&admin, &symbol_short!("ANT05")));
+        let client = VotingClient::new(&env, &contract_id);
+        let voter = Address::generate(&env);
+
+        client.configure_process(&symbol_short!("PLEB26"), &1000_u64, &2000_u64);
+        assert_eq!(client.process_id(), symbol_short!("PLEB26"));
+
+        client.add_option(&symbol_short!("SI"));
+        client.add_option(&symbol_short!("NO"));
+        client.authorize_voter(&voter);
+
+        // Vote before open -> NotOpen
+        assert_eq!(
+            client.try_cast(&voter, &symbol_short!("SI")),
+            Err(Ok(Error::NotOpen))
+        );
+
+        client.open();
+
+        // Ledger timestamp before window (500 < 1000) -> OutOfVotingWindow
+        env.ledger().with_mut(|li| li.timestamp = 500);
+        assert_eq!(
+            client.try_cast(&voter, &symbol_short!("SI")),
+            Err(Ok(Error::OutOfVotingWindow))
+        );
+
+        // Ledger timestamp inside window (1500 in [1000, 2000]) -> UnknownOption rejected, valid accepted
+        env.ledger().with_mut(|li| li.timestamp = 1500);
+        assert_eq!(
+            client.try_cast(&voter, &symbol_short!("NULO")),
+            Err(Ok(Error::UnknownOption))
+        );
+        client.cast(&voter, &symbol_short!("SI"));
+        assert_eq!(client.total_votes(), 1);
+
+        // Close election -> further votes rejected with ElectionClosed
+        client.close();
+        let voter2 = Address::generate(&env);
+        assert_eq!(
+            client.try_cast(&voter2, &symbol_short!("NO")),
+            Err(Ok(Error::ElectionClosed))
+        );
     }
 }

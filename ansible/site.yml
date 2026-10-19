@@ -1,0 +1,14 @@
+---
+# Consensus Colombia MVP — Idempotent Application Host Configuration Playbook
+# Configures and validates the Consensus application services (Django, FastAPI, Rust, Nginx/WAF).
+# Does NOT deploy or simulate Stellar validator nodes.
+
+- name: Configure and validate Consensus Colombia application environment
+  hosts: consensus_app_nodes
+  become: false
+  gather_facts: true
+
+  roles:
+    - role: common_security
+    - role: consensus_services
+    - role: health_validation

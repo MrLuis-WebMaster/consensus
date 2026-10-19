@@ -1,0 +1,14 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+COPY services/api/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+COPY data/territories /app/data/territories
+COPY services/api/app /app/app
+
+EXPOSE 8090
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8090"]

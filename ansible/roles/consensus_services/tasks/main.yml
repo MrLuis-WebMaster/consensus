@@ -1,0 +1,13 @@
+---
+- name: Validate DIVIPOLA territorial catalog SHA-256 integrity before starting services
+  ansible.builtin.command:
+    cmd: python scripts/verify_pipeline_and_artifacts.py --strict
+    chdir: "{{ consensus_app_dir }}"
+  changed_when: false
+
+- name: Validate Docker Compose service definitions
+  ansible.builtin.command:
+    cmd: docker compose --profile "{{ consensus_compose_profile }}" config -q
+    chdir: "{{ consensus_app_dir }}"
+  changed_when: false
+  notify: Restart Consensus Services

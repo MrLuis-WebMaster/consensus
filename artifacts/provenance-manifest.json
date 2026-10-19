@@ -1,0 +1,25 @@
+{
+  "artifact_hashes_sha256": {
+    ".circleci/config.yml": "58d874f0cf5ebc0f8f76512d7088c75b275ad76af7e4bf497f85f7be660829c3",
+    "backend/src/domain/mod.rs": "bb5b080c5be42366683eaa079ed2cb20b15b9225b51747daeebe83f576a134ab",
+    "cloud/terraform/main.tf": "899f4e9f368c30acae1e7ac5cbaed13e7948bbb20e70a5a3472308571d82442a",
+    "data/territories/colombia_divipola.json": "7bb1392233e35900f994af7cce3df57c56cee1e98c43d4fb6f71b84fdc14e47b",
+    "data/territories/voting_mechanisms_colombia.json": "381557da00f86fa1e329d856507b315f75c01e35f1de1b2c3363414696035dbe",
+    "encryption/biometric/lab/face_provider.py": "70072561dd73d8d0b6b112245f0483af505227e461e6e4719120526cae63b47d",
+    "encryption/biometric/lab/views.py": "ec9cca3d6f70bd48f27c63945d425e46401e176acda112f4699da4be4c9ecdde",
+    "frontend/dist/index.html": "36ce4fe4ce64b0a29bbf1191770dccf38fc83744ea8d0c7580bfc53fe40178ad",
+    "services/api/app/main.py": "1dab40a1bc2b1e27dab12899c1d8f519a644c6468afdac9f58929df958494273",
+    "stellar/contracts/voting/src/lib.rs": "4147723ccaa9fe644c2a5ea6b3c584be727a699efcf9c3065ca8cf41975523cb"
+  },
+  "generated_at_epoch": 1792384118,
+  "git_commit_sha": "local-working-tree",
+  "project": "Consensus Colombia Educational MVP",
+  "security_assertions": {
+    "ansible_validated": true,
+    "divipola_verified": true,
+    "faceplugin_simulated_matches": false,
+    "secrets_detected": 0,
+    "terraform_validated": true
+  },
+  "stellar_target_network": "TESTNET"
+}

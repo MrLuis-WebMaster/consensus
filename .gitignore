@@ -10,6 +10,10 @@ __pycache__/
 terraform/.terraform/
 terraform/*.tfstate*
 terraform/.terraform.lock.hcl
+cloud/terraform/.terraform/
+cloud/terraform/*.tfstate*
+cloud/terraform/.terraform.lock.hcl
+.pytest_cache/
 keys/
 secrets/
 docs/evidence/*.json

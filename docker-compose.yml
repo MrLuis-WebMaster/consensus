@@ -16,14 +16,46 @@ services:
       - "8080:8080"
     restart: unless-stopped
 
+  fastapi-integration:
+    build:
+      context: .
+      dockerfile: ./services/api/Dockerfile
+    profiles: [lab]
+    environment:
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY in .env}
+      FASTAPI_CORS_ORIGINS: ${IDENTITY_CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      CONSENSUS_S3_BUCKET: ${CONSENSUS_S3_BUCKET:-}
+      CONSENSUS_IAM_ROLE_ARN: ${CONSENSUS_IAM_ROLE_ARN:-}
+    ports:
+      - "8090:8090"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/api/v1/ready', timeout=2)"]
+      interval: 20s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
   identity-a:
     container_name: consensus-identity-a
     build: ./encryption/biometric
     profiles: [lab]
     environment: &identity-env
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY in .env}
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-}
       ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
       TOTP_SECRET: ${TOTP_SECRET:-}
+      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:-}
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:-}
+      RECAPTCHA_DEV_TEST_MODE: ${RECAPTCHA_DEV_TEST_MODE:-true}
+      EMAIL_PROVIDER_MODE: ${EMAIL_PROVIDER_MODE:-sandbox}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      FACEPLUGIN_SDK_PATH: ${FACEPLUGIN_SDK_PATH:-}
+      FACEPLUGIN_LICENSE_REVIEWED: ${FACEPLUGIN_LICENSE_REVIEWED:-false}
       PORT: "8001"
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,waf,python-lb,python-a,python-b}
       IDENTITY_CORS_ORIGINS: ${IDENTITY_CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}

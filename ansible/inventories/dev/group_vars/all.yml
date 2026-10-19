@@ -1,0 +1,14 @@
+---
+consensus_env: "dev"
+consensus_app_dir: "/opt/consensus"
+consensus_compose_profile: "lab"
+django_port: 8001
+fastapi_port: 8090
+rust_backend_port: 8080
+waf_port: 8088
+stellar_network: "TESTNET"
+stellar_rpc_url: "https://soroban-testnet.stellar.org"
+# Note: Consensus application nodes are HTTP/API servers, NOT Stellar consensus validator nodes.
+enable_live_s3: false
+healthcheck_retries: 5
+healthcheck_delay_seconds: 3

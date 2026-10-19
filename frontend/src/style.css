@@ -197,3 +197,35 @@ footer p { flex-basis: 100%; margin: 0; line-height: 1.5; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* ==========================================================================
+   4-Step Secure Login Gate, Informed Consent & DIVIPOLA Selector Extensions
+   ========================================================================== */
+[hidden] { display: none !important; }
+select { width: 100%; min-height: 40px; padding: .55rem .7rem; color: var(--ink); border: 1px solid #deded4; border-radius: 7px; background: #fff; font-size: .8rem; }
+.auth-gate-shell { max-width: 980px; margin: 2rem auto 3rem; padding: 0 1.25rem; }
+.auth-card { padding: 1.8rem clamp(1.2rem, 3vw, 2.4rem); background: var(--paper); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 12px 32px rgba(30, 61, 46, 0.05); }
+.auth-card-header { position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 1.25rem; padding-bottom: 1.1rem; border-bottom: 1px solid var(--line); }
+.auth-card-header h1 { margin: .45rem 0 .5rem; font-size: clamp(1.45rem, 2.8vw, 2.1rem); color: var(--green-dark); }
+.auth-stamp { position: static; flex: none; width: 76px; height: 76px; color: var(--green-dark); border-color: #c5d6c7; background: #eef4eb; }
+.auth-stamp span { font-size: 1.35rem; }
+.auth-stamp small { color: var(--muted); }
+.auth-stepper { list-style: none; padding: 0; margin: 1.1rem 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .55rem; }
+.auth-stepper li { display: flex; align-items: center; gap: .5rem; padding: .6rem .75rem; border: 1px solid var(--line); border-radius: 8px; background: #f8f6f0; color: var(--muted); font-size: .74rem; font-weight: 700; }
+.auth-stepper li span { font: 700 .68rem ui-monospace, monospace; color: #8c968e; }
+.auth-stepper li.active { color: var(--green-dark); border-color: #6c9a79; background: #eaf2e8; }
+.auth-stepper li.done { color: #2b6647; border-color: #b7d2be; background: #f3f8f1; }
+.auth-alert { margin: 0 0 1rem; padding: .75rem .95rem; border-radius: 8px; border: 1px solid #d5e2d5; background: #f3f8f2; color: var(--green-dark); font-size: .78rem; line-height: 1.5; }
+.auth-alert-error { border-color: #e6bfb6; background: #fcf2ef; color: #84352b; }
+.auth-step-pane { padding-top: .25rem; }
+.auth-action-box { display: flex; align-items: flex-end; gap: .55rem; padding-top: 1.4rem; }
+.sandbox-box, .consent-box, .panel-subtle { padding: .85rem 1rem; border-radius: 9px; border: 1px solid var(--line); background: #faf9f4; font-size: .76rem; line-height: 1.5; }
+.checkbox-row { display: flex; align-items: flex-start; gap: .55rem; margin: .75rem 0; font-weight: 600; cursor: pointer; }
+.checkbox-row input[type="checkbox"] { width: 18px; height: 18px; min-height: 18px; margin-top: .12rem; flex: none; }
+.search-results-strip { display: flex; flex-wrap: wrap; gap: .45rem; margin-bottom: .8rem; }
+.search-pill { font-size: .7rem; padding: .4rem .65rem; }
+@media (max-width: 720px) {
+  .auth-stepper { grid-template-columns: 1fr 1fr; }
+  .auth-card-header { flex-direction: column; }
+  .auth-action-box { padding-top: .6rem; flex-wrap: wrap; }
+}

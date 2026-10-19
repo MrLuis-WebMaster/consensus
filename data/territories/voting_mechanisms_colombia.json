@@ -1,0 +1,370 @@
+{
+  "metadata": {
+    "title": "Catálogo de Tipos de Procesos Electorales y Mecanismos de Participación Ciudadana — Colombia",
+    "normative_references": [
+      "Constitución Política de Colombia de 1991 (Arts. 103, 190, 258, 262, 303, 314, 322)",
+      "Ley 134 de 1994 (Mecanismos de Participación Ciudadana)",
+      "Ley Estatutaria 1757 de 2015 (Promoción y protección del derecho a la participación democrática)",
+      "Código Electoral Colombiano (Decreto 2241 de 1986)"
+    ],
+    "version": "2026.10",
+    "educational_disclaimer": "Estas plantillas son configurables exclusivamente para simulaciones educativas y ejercicios no vinculantes en Consensus. Ningún umbral o mayoría está codificado como universal; las reglas dependen del proceso y de la normativa aplicable."
+  },
+  "templates": [
+    {
+      "template_id": "unipersonal",
+      "category": "A_electoral_representativo",
+      "name": "Elección de Cargo Unipersonal (Simulación)",
+      "normative_basis": "Arts. 190, 303 y 314 Constitución Política (Contraste educativo)",
+      "is_ballot_centrist": true,
+      "deliberation_flow_required": false,
+      "description": "Simulación de elección para un cargo unipersonal (ej. Alcaldía, Gobernación, Rectoría o Presidencia estudiantil) con selección única y opción de voto en blanco.",
+      "default_rules": {
+        "max_selections": 1,
+        "blank_vote_enabled": true,
+        "allow_unmarked_vote": true,
+        "allow_null_vote_simulation": true,
+        "territorial_scope": "municipal",
+        "participation_threshold_pct": 0.0,
+        "required_majority_rule": "mayoria_simple",
+        "tie_breaker_rule": "sorteo_auditado_en_acta",
+        "tally_rule": "conteo_directo_unipersonal",
+        "results_publication_mode": "al_cierre_verificado",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": [
+          "Falla técnica crítica verificada en laboratorio",
+          "Mayoría absoluta de voto en blanco (cuando la regla del ejercicio exija repetir con nuevos candidatos)",
+          "Cancelación administrativa motivada por el comité 5-de-8"
+        ],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": true,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "En elecciones reales unipersonales en Colombia rige mayoría simple (Alcaldía/Gobernación) o absoluta con segunda vuelta (Presidencia, Art. 190 C.P.), y el voto en blanco con mayoría absoluta obliga a repetir la elección por una sola vez (Art. 258 Par. 1 C.P.). En Consensus todas las cuentas y candidatos son sintéticos."
+    },
+    {
+      "template_id": "corporacion_lista_abierta",
+      "category": "A_electoral_representativo",
+      "name": "Corporación Pública — Lista Abierta con Voto Preferente",
+      "normative_basis": "Art. 262 Constitución Política (Contraste educativo)",
+      "is_ballot_centrist": true,
+      "deliberation_flow_required": false,
+      "description": "Simulación de elección colegiada (Concejo, Asamblea, JAL o Consejo Académico) donde el participante puede votar por una lista y marcar preferencia por una candidatura específica.",
+      "default_rules": {
+        "max_selections": 1,
+        "blank_vote_enabled": true,
+        "allow_unmarked_vote": true,
+        "allow_null_vote_simulation": true,
+        "territorial_scope": "municipal",
+        "participation_threshold_pct": 0.0,
+        "required_majority_rule": "cifra_repartidora_simulada",
+        "tie_breaker_rule": "orden_inscripcion_o_sorteo_acta",
+        "tally_rule": "lista_abierta_voto_preferente",
+        "results_publication_mode": "al_cierre_verificado",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": [
+          "Inconsistencia en configuración de listas antes de apertura",
+          "Cancelación administrativa motivada"
+        ],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": true,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "En corporaciones públicas reales se aplica umbral y cifra repartidora (Art. 263 C.P.), y marcar más de una lista anula el voto. En este laboratorio el usuario configura opciones sintéticas de lista/candidato."
+    },
+    {
+      "template_id": "corporacion_lista_cerrada",
+      "category": "A_electoral_representativo",
+      "name": "Corporación Pública — Lista Cerrada sin Voto Preferente",
+      "normative_basis": "Art. 262 Constitución Política (Contraste educativo)",
+      "is_ballot_centrist": true,
+      "deliberation_flow_required": false,
+      "description": "Simulación de votación por listas bloqueadas y cerradas en el orden predefinido por la organización o agrupación ficticia.",
+      "default_rules": {
+        "max_selections": 1,
+        "blank_vote_enabled": true,
+        "allow_unmarked_vote": true,
+        "allow_null_vote_simulation": true,
+        "territorial_scope": "departamental",
+        "participation_threshold_pct": 0.0,
+        "required_majority_rule": "cifra_repartidora_simulada",
+        "tie_breaker_rule": "sorteo_auditado_en_acta",
+        "tally_rule": "lista_cerrada_bloqueada",
+        "results_publication_mode": "al_cierre_verificado",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": ["Cancelación administrativa motivada"],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": true,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "El votante elige únicamente la lista completa o el voto en blanco; el orden de asignación sigue la prelación registrada antes de abrir el proceso."
+    },
+    {
+      "template_id": "interna_organizacion",
+      "category": "A_electoral_representativo",
+      "name": "Elección Interna de Organización o Comité",
+      "normative_basis": "Estatutos internos configurables (Escenario educativo)",
+      "is_ballot_centrist": true,
+      "deliberation_flow_required": false,
+      "description": "Votación interna para juntas directivas, comités de convivencia, cooperativas, semilleros o asociaciones con posibilidad de selección única o múltiple.",
+      "default_rules": {
+        "max_selections": 2,
+        "blank_vote_enabled": true,
+        "allow_unmarked_vote": true,
+        "allow_null_vote_simulation": false,
+        "territorial_scope": "organizacion",
+        "participation_threshold_pct": 20.0,
+        "required_majority_rule": "mayoria_simple",
+        "tie_breaker_rule": "segunda_votacion_interna",
+        "tally_rule": "conteo_plurinominal_configurable",
+        "results_publication_mode": "tiempo_real_o_cierre",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": ["Falta de quórum estatutario simulado"],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": true,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "Permite configurar una o varias selecciones según los estatutos de prueba del ejercicio."
+    },
+    {
+      "template_id": "simulada_representantes",
+      "category": "A_electoral_representativo",
+      "name": "Elección Simulada de Representantes Estudiantiles o Cívicos",
+      "normative_basis": "Ejercicio pedagógico universitario / escolar",
+      "is_ballot_centrist": true,
+      "deliberation_flow_required": false,
+      "description": "Plantilla ligera para laboratorios académicos de representación estudiantil y pruebas de verificación en Stellar Testnet.",
+      "default_rules": {
+        "max_selections": 1,
+        "blank_vote_enabled": true,
+        "allow_unmarked_vote": true,
+        "allow_null_vote_simulation": true,
+        "territorial_scope": "organizacion",
+        "participation_threshold_pct": 10.0,
+        "required_majority_rule": "mayoria_simple",
+        "tie_breaker_rule": "sorteo_publico_pedagogico",
+        "tally_rule": "conteo_directo_unipersonal",
+        "results_publication_mode": "tiempo_real_o_cierre",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": ["Reinicio programado del laboratorio"],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": false,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "Escenario 100% sintético para docencia y validación de contratos inteligentes."
+    },
+    {
+      "template_id": "plebiscito",
+      "category": "B_participacion_ciudadana",
+      "name": "Plebiscito (Simulación Pedagógica)",
+      "normative_basis": "Art. 103 C.P., Ley 134 de 1994 y Ley 1757 de 2015",
+      "is_ballot_centrist": true,
+      "deliberation_flow_required": false,
+      "description": "Pronunciamiento simulado para apoyar o rechazar una decisión ejecutiva mediante opciones binarias (SÍ / NO) con umbral configurable.",
+      "default_rules": {
+        "max_selections": 1,
+        "blank_vote_enabled": false,
+        "allow_unmarked_vote": true,
+        "allow_null_vote_simulation": true,
+        "territorial_scope": "nacional",
+        "participation_threshold_pct": 50.0,
+        "required_majority_rule": "mayoria_absoluta_con_umbral_censo",
+        "tie_breaker_rule": "no_aprobado_en_caso_de_empate",
+        "tally_rule": "binario_si_no_con_umbral",
+        "results_publication_mode": "al_cierre_verificado",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": ["Suspensión del escenario por el equipo coordinador"],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": true,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "El umbral y la mayoría en un plebiscito real están sujetos a la Ley 134/1994, Ley 1757/2015 y jurisprudencia constitucional aplicable. Aquí son parámetros configurables de simulación."
+    },
+    {
+      "template_id": "referendo",
+      "category": "B_participacion_ciudadana",
+      "name": "Referendo Aprobatorio o Derogatorio (Simulación)",
+      "normative_basis": "Art. 103 y 378 C.P., Ley 134 de 1994 y Ley 1757 de 2015",
+      "is_ballot_centrist": true,
+      "deliberation_flow_required": false,
+      "description": "Simulación de consulta sobre articulado normativo para aprobar o derogar disposiciones ficticias, con umbral de participación configurable (ej. 25% del censo sintético).",
+      "default_rules": {
+        "max_selections": 1,
+        "blank_vote_enabled": true,
+        "allow_unmarked_vote": true,
+        "allow_null_vote_simulation": true,
+        "territorial_scope": "nacional",
+        "participation_threshold_pct": 25.0,
+        "required_majority_rule": "mitad_mas_uno_con_umbral_25pct",
+        "tie_breaker_rule": "no_aprobado_en_caso_de_empate",
+        "tally_rule": "referendo_si_no_voto_en_blanco",
+        "results_publication_mode": "al_cierre_verificado",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": ["No superación de revisión previa del escenario"],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": true,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "Contrasta el umbral del 25% del censo electoral previsto en el Art. 378 C.P. y Ley 1757/2015 con el censo sintético del laboratorio."
+    },
+    {
+      "template_id": "consulta_popular",
+      "category": "B_participacion_ciudadana",
+      "name": "Consulta Popular (Nacional, Departamental, Distrital o Municipal)",
+      "normative_basis": "Art. 103 y 104 C.P., Ley 134 de 1994 y Ley 1757 de 2015",
+      "is_ballot_centrist": true,
+      "deliberation_flow_required": false,
+      "description": "Pregunta de carácter general sobre un asunto de interés nacional, departamental, municipal, distrital o local en escenario de simulación.",
+      "default_rules": {
+        "max_selections": 1,
+        "blank_vote_enabled": false,
+        "allow_unmarked_vote": true,
+        "allow_null_vote_simulation": true,
+        "territorial_scope": "municipal",
+        "participation_threshold_pct": 33.33,
+        "required_majority_rule": "mitad_mas_uno_con_tercera_parte_censo",
+        "tie_breaker_rule": "no_aprobado_en_caso_de_empate",
+        "tally_rule": "binario_si_no_con_umbral",
+        "results_publication_mode": "al_cierre_verificado",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": ["Vencimiento de término de simulación"],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": true,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "En la Ley 1757/2015 (Art. 41) la consulta popular requiere participación de al menos la tercera parte del censo respectivo y mitad más uno de votos válidos. En Consensus este umbral es configurable."
+    },
+    {
+      "template_id": "cabildo_abierto",
+      "category": "B_participacion_ciudadana",
+      "name": "Cabildo Abierto (Flujo Deliberativo + Registro de Ponencias)",
+      "normative_basis": "Art. 103 C.P., Ley 134 de 1994 y Ley 1757 de 2015 (Arts. 22-30)",
+      "is_ballot_centrist": false,
+      "deliberation_flow_required": true,
+      "description": "Mecanismo deliberativo ante Concejos Distritales/Municipales o JAL. NO se reduce a una papeleta digital ni funciona como elección de candidatos: articula solicitud motivada, inscripción de ponencias, deliberación pública y compromiso de respuesta oficial.",
+      "default_rules": {
+        "max_selections": 1,
+        "blank_vote_enabled": false,
+        "allow_unmarked_vote": false,
+        "allow_null_vote_simulation": false,
+        "territorial_scope": "municipal",
+        "participation_threshold_pct": 0.5,
+        "required_majority_rule": "deliberacion_y_respuesta_motivada",
+        "tie_breaker_rule": "no_aplica_mecanismo_deliberativo",
+        "tally_rule": "registro_apoyos_y_priorizacion_ponencias",
+        "results_publication_mode": "acta_deliberativa_y_compromisos",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": ["Materia excluida (proyectos de apropiación/presupuesto directo sin trámite legal)"],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": true,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "Aclaración obligatoria: El cabildo abierto no elige candidatos ni sustituye la sesión pública deliberativa. En Consensus el contrato registra apoyos o priorización de ponencias ciudadanas sintéticas."
+    },
+    {
+      "template_id": "iniciativa_ciudadana",
+      "category": "B_participacion_ciudadana",
+      "name": "Iniciativa Popular Legislativa y Normativa (Apoyos y Propuestas)",
+      "normative_basis": "Art. 103 y 155 C.P., Ley 134 de 1994 y Ley 1757 de 2015",
+      "is_ballot_centrist": false,
+      "deliberation_flow_required": true,
+      "description": "Derecho político de un grupo de ciudadanos de presentar proyectos de acto legislativo, ley, ordenanza, acuerdo o resolución. NO es una elección de candidatos: requiere comité promotor, articulado propuesto, recolección de apoyos y debate en la corporación.",
+      "default_rules": {
+        "max_selections": 1,
+        "blank_vote_enabled": false,
+        "allow_unmarked_vote": false,
+        "allow_null_vote_simulation": false,
+        "territorial_scope": "departamental",
+        "participation_threshold_pct": 5.0,
+        "required_majority_rule": "umbral_apoyos_para_radicacion",
+        "tie_breaker_rule": "no_aplica_recoleccion_apoyos",
+        "tally_rule": "conteo_apoyos_a_propuesta_normativa",
+        "results_publication_mode": "certificacion_simulada_de_apoyos",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": ["Vencimiento del plazo de recolección de apoyos sintéticos"],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": true,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "Aclaración obligatoria: La iniciativa normativa requiere flujo de propuesta, exposición de motivos y recolección de apoyos antes de su trámite en la corporación pública."
+    },
+    {
+      "template_id": "revocatoria_mandato",
+      "category": "B_participacion_ciudadana",
+      "name": "Revocatoria del Mandato (Simulación Gobernación / Alcaldía)",
+      "normative_basis": "Art. 103 y 259 C.P., Ley 134 de 1994 y Ley 1757 de 2015",
+      "is_ballot_centrist": true,
+      "deliberation_flow_required": false,
+      "description": "Simulación del mecanismo por el cual los ciudadanos dan por terminado el mandato conferido a un gobernador o a un alcalde ficticio.",
+      "default_rules": {
+        "max_selections": 1,
+        "blank_vote_enabled": false,
+        "allow_unmarked_vote": true,
+        "allow_null_vote_simulation": true,
+        "territorial_scope": "municipal",
+        "participation_threshold_pct": 40.0,
+        "required_majority_rule": "mitad_mas_uno_con_umbral_40pct_votacion_valida_anterior",
+        "tie_breaker_rule": "mandato_continua_en_caso_de_empate",
+        "tally_rule": "binario_si_no_con_umbral",
+        "results_publication_mode": "al_cierre_verificado",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": ["Fuera de ventana temporal permitida (primer o último año de mandato en contraste legal)"],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": true,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "En la Ley 1757/2015 aplica únicamente a alcaldes y gobernadores (no a Presidente ni congresistas), con umbral del 40% de la votación válida registrada el día en que se eligió al mandatario y mitad más uno por el SÍ."
+    },
+    {
+      "template_id": "consulta_no_vinculante",
+      "category": "B_participacion_ciudadana",
+      "name": "Consulta Ciudadana No Vinculante / Presupuesto Participativo",
+      "normative_basis": "Ley 1757 de 2015 (Arts. 90-100 Presupuestos Participativos) / Ejercicio interno",
+      "is_ballot_centrist": false,
+      "deliberation_flow_required": true,
+      "description": "Priorización comunitaria no vinculante de proyectos barriales, comunales o institucionales con opciones múltiples.",
+      "default_rules": {
+        "max_selections": 3,
+        "blank_vote_enabled": true,
+        "allow_unmarked_vote": true,
+        "allow_null_vote_simulation": false,
+        "territorial_scope": "municipal",
+        "participation_threshold_pct": 5.0,
+        "required_majority_rule": "orden_priorizacion_por_puntaje",
+        "tie_breaker_rule": "criterio_equidad_territorial_configurado",
+        "tally_rule": "seleccion_multiple_acumulativa",
+        "results_publication_mode": "tiempo_real_o_cierre",
+        "process_states": ["draft", "open", "closed", "cancelled"],
+        "cancellation_grounds": ["Cierre anticipado acordado por la mesa técnica"],
+        "audit_config": {
+          "require_stellar_tx_evidence": true,
+          "require_admin_totp": false,
+          "separate_identity_from_ballot": true
+        }
+      },
+      "educational_vs_legal_note": "Ideal para ejercicios de priorización de proyectos comunitarios donde se permiten múltiples selecciones y propuestas deliberativas."
+    }
+  ]
+}

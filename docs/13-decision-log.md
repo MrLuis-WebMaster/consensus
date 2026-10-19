@@ -1,69 +1,17 @@
-# 13. Registro de decisiones
+# 13. Registro de decisiones (Decision Log / ADR)
 
-**Estado:** actualizado a septiembre de 2026
+**Estado:** actualizado a octubre de 2026 (MVP completado)
 
-## Decisiones confirmadas
+## Decisiones Confirmadas
 
-| ID | Decisión | Motivo |
+| ID | Decisión | Motivo y Evidencia |
 | --- | --- | --- |
-| DEC-001 | Utilizar Stellar. | Es el objeto técnico principal del proyecto educativo. |
-| DEC-002 | Utilizar TypeScript en aplicación e integración. | Conocimiento del equipo y SDK disponible. |
-| DEC-003 | Trabajar inicialmente en una red de pruebas. | Evitar activos y datos reales. |
-| DEC-004 | Utilizar exclusivamente escenarios e identidades ficticias. | Privacidad y alcance educativo. |
-| DEC-005 | Equipo de cinco integrantes. | Composición real del equipo. |
-| DEC-006 | Una elección activa en el MVP. | Control de alcance. |
-| DEC-007 | El MVP no ofrece voto secreto. | La privacidad avanzada queda fuera del horizonte inicial. |
-| DEC-008 | El repositorio y la documentación son públicos. | Aprendizaje, revisión y trazabilidad. |
-
-## Decisiones abiertas
-
-### DEC-009 — Arquitectura objetivo del MVP (propuesta)
-
-Soroban/Rust para las reglas en cadena, TypeScript para cliente e integración, y Python/FastAPI solo para servicios off-chain opcionales. Se mantiene como propuesta hasta completar EXP-002 y la revisión de seguridad. La biometría y el cifrado homomórfico no forman parte del MVP.
-
-### DEC-010 — Entorno de desarrollo y costes (propuesta)
-
-Stellar Quickstart local + Stellar CLI + `simulateTransaction` para aprendizaje y medición de recursos; Testnet para la demostración. AWS solo hospeda componentes auxiliares y se controla con Budgets. Amazon Managed Blockchain no se usará como nodo Stellar.
-
-### OPEN-001 — Modelo de ejecución de reglas
-
-**Opciones:** operaciones nativas de Stellar o contrato inteligente.
-
-**Criterios:** expresividad, pruebas, seguridad, aprendizaje, tiempo y verificabilidad.
-
-**Evidencia:** EXP-001 y EXP-002.
-
-### OPEN-002 — Lenguaje del contrato
-
-Solo aplica si se selecciona contrato.
-
-**Opciones consideradas:** Rust oficial o alternativa comunitaria compatible.
-
-**Restricción:** TypeScript permanece como lenguaje de cliente; no se presenta como SDK oficial de contratos.
-
-### OPEN-003 — Framework frontend
-
-**Criterios:** TypeScript, experiencia, integración, accesibilidad, pruebas y despliegue.
-
-### OPEN-004 — Estrategia de firma
-
-**Opciones:** billetera, kit de billeteras o cuentas controladas para demostración.
-
-**Criterios:** seguridad, reproducibilidad y facilidad educativa.
-
-### OPEN-005 — Backend
-
-**Regla:** no incorporarlo hasta que un requisito lo justifique.
-
-### OPEN-006 — Hosting y CI
-
-**Criterios:** costo, simplicidad, seguridad y reproducibilidad.
-
-## Proceso
-
-1. Crear un ADR desde la plantilla.
-2. Documentar opciones.
-3. Ejecutar la prueba necesaria.
-4. Revisar en equipo.
-5. Aprobar mediante pull request.
-6. Actualizar esta tabla y la trazabilidad.
+| DEC-001 | Utilizar **Stellar Soroban (Rust / `wasm32v1-none`)** para reglas de votación en cadena. | Permite verificar apertura/cierre, ventana temporal (`OutOfVotingWindow`), elegibilidad, unicidad de voto (`AlreadyVoted`) y conteo por opción en Stellar Testnet (`stellar/contracts/voting/src/lib.rs`). |
+| DEC-002 | Conservar el cliente **TypeScript + Vite** e integrarlo con **Freighter** y los servicios backend. | Mantiene la base existente del repositorio y agrega la primera pantalla de login en 4 pasos y las 14 vistas requeridas sin almacenar tokens de sesión en `localStorage`. |
+| DEC-003 | Separar responsabilidades entre **Django** (`encryption/biometric/`), **FastAPI** (`services/api/`) y **Rust** (`backend/`). | Django gestiona identidad MFA, OTP, consentimiento biométrico, RBAC y sesiones `HttpOnly`; FastAPI expone endpoints de integración (`/api/v1/*`), catálogo DIVIPOLA, S3/IAM y GitHub REST API validando tickets HMAC emitidos por Django; Rust valida invariantes de dominio y contratos. |
+| DEC-004 | Evaluar e integrar `Faceplugin-ltd/Open-Source-Face-Recognition-SDK` detrás de la interfaz desacoplada `FaceRecognitionProvider`. | Se auditó el repositorio oficial y se documentó en [`docs/18-faceplugin-evaluation-and-privacy.md`](18-faceplugin-evaluation-and-privacy.md) que carece de archivo `LICENSE` explícito, pesos ONNX versionados y módulo de prueba de vida (`check_liveness` reporta `supported=False`). Cuando el motor no está instalado, devuelve `engine_enabled=False` sin simular coincidencias falsas y habilita el flujo alternativo autorizado. |
+| DEC-005 | Prohibir la persistencia de biometría (imágenes o embeddings) en S3, Stellar, base de datos o logs. | Cumplimiento de privacidad desde el diseño (Ley 1581 de 2012): los buffers en memoria se sobrescriben con ceros inmediatamente después de la comparación 1:1 y la identificación 1:N está bloqueada por política (`HTTP 403`). |
+| DEC-006 | Incorporar el catálogo oficial **DANE DIVIPOLA** completo (32 departamentos + Bogotá D.C. = 33 entidades y 1,122 municipios) y **12 mecanismos de participación**. | Reemplaza el subconjunto inicial de 10 departamentos sin romper los pilotos existentes y soporta todas las circunscripciones y mecanismos de las Categorías A y B (`data/territories/`). |
+| DEC-007 | Separar el registro de participación del contenido de la papeleta en la capa de aplicación y documentar que Soroban público no ofrece secreto criptográfico del voto. | Evita vincular directamente el correo del participante con la opción elegida en la tabla de papeletas de FastAPI/Rust, manteniendo transparencia sobre los límites del contrato público en Stellar Testnet. |
+| DEC-008 | Aprovisionar únicamente **AWS S3 + IAM de mínimo privilegio** (+ CloudWatch Logs) en Terraform y automatizar la configuración con **Ansible** y **CircleCI**. | Minimiza costos de nube en el MVP, bloquea todo acceso público en S3, separa el rol de ejecución (`app-runtime-role`) del rol de despliegue (`ci-deploy-role`) y verifica artefactos con hashes SHA-256 e inmutabilidad de commit vía GitHub REST API. |
+| DEC-009 | Aclarar en código y documentación que los 8 administradores de aplicación **no son nodos validadores de Stellar**. | Evita confusiones arquitectónicas entre el umbral administrativo 5-de-8 de la aplicación y el protocolo de consenso SCP de la red Stellar. |

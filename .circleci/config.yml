@@ -1,0 +1,272 @@
+version: 2.1
+
+# Consensus Colombia MVP — Reproducible CI/CD Pipeline (Source of Truth for Build, Audit, WASM & AWS S3 Promotion)
+# Never prints AWS secrets, Stellar private seeds (S...), OTP secrets, or session tokens in logs.
+
+executors:
+  node-executor:
+    docker:
+      - image: cimg/node:22.14
+    working_directory: ~/project
+
+  python-executor:
+    docker:
+      - image: cimg/python:3.12
+    working_directory: ~/project
+
+  rust-executor:
+    docker:
+      - image: cimg/rust:1.84
+    working_directory: ~/project
+
+  base-executor:
+    docker:
+      - image: cimg/base:2024.12
+    working_directory: ~/project
+
+jobs:
+  # Job 1, 2 & 3: Reproducible lockfile install, TypeScript validation, unit tests & production build
+  frontend-validate-and-build:
+    executor: node-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-frontend-npm-{{ checksum "frontend/package-lock.json" }}
+      - run:
+          name: "Job 2: Reproducible npm ci from lockfile"
+          working_directory: frontend
+          command: npm ci --ignore-scripts
+      - save_cache:
+          key: v1-frontend-npm-{{ checksum "frontend/package-lock.json" }}
+          paths:
+            - ~/.npm
+      - run:
+          name: "Job 1: TypeScript strict type validation"
+          working_directory: frontend
+          command: npm test
+      - run:
+          name: "Job 3: Frontend production build"
+          working_directory: frontend
+          command: npm run build
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - frontend/dist
+
+  # Job 4: Django identity, 4-step MFA, FacePlugin adapter & RBAC tests
+  django-identity-tests:
+    executor: python-executor
+    environment:
+      DJANGO_SECRET_KEY: "ci-ephemeral-test-only-key-0123456789abcdef0123456789abcdef"
+      EMAIL_PROVIDER_MODE: "sandbox"
+      RECAPTCHA_DEV_TEST_MODE: "true"
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-pip-django-{{ checksum "encryption/biometric/requirements.txt" }}
+      - run:
+          name: "Install Django identity dependencies"
+          working_directory: encryption/biometric
+          command: python -m pip install -r requirements.txt
+      - save_cache:
+          key: v1-pip-django-{{ checksum "encryption/biometric/requirements.txt" }}
+          paths:
+            - ~/.cache/pip
+      - run:
+          name: "Run Django system check and unit/acceptance tests"
+          working_directory: encryption/biometric
+          command: |
+            python manage.py check
+            python manage.py test lab -v 2
+
+  # Job 5: FastAPI integration service, DIVIPOLA catalog & voting mechanisms tests
+  fastapi-integration-tests:
+    executor: python-executor
+    environment:
+      PYTHONPATH: "."
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-pip-fastapi-{{ checksum "services/api/requirements.txt" }}
+      - run:
+          name: "Install FastAPI dependencies"
+          command: python -m pip install -r services/api/requirements.txt
+      - save_cache:
+          key: v1-pip-fastapi-{{ checksum "services/api/requirements.txt" }}
+          paths:
+            - ~/.cache/pip
+      - run:
+          name: "Validate DIVIPOLA catalog and run FastAPI test suite"
+          command: |
+            python -m pytest services/api/tests/test_api.py -v
+
+  # Job 6 & 7: Rust/Soroban smart contract + domain backend tests & WASM artifact verification
+  rust-soroban-and-wasm-verify:
+    executor: rust-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-cargo-cache-{{ checksum "stellar/contracts/voting/Cargo.toml" }}-{{ checksum "backend/Cargo.toml" }}
+      - run:
+          name: "Install wasm32v1-none target"
+          command: rustup target add wasm32v1-none
+      - run:
+          name: "Job 6a: Run Soroban voting smart contract unit & adversarial tests"
+          command: cargo test --manifest-path stellar/contracts/voting/Cargo.toml
+      - run:
+          name: "Job 6b: Run Rust domain backend unit tests"
+          command: cargo test --manifest-path backend/Cargo.toml
+      - run:
+          name: "Job 7: Build reproducible Soroban WASM artifact and verify header & SHA-256"
+          command: |
+            cargo build --manifest-path stellar/contracts/voting/Cargo.toml --target wasm32v1-none --release
+            WASM_FILE="stellar/contracts/voting/target/wasm32v1-none/release/voting_contract.wasm"
+            test -f "$WASM_FILE"
+            sha256sum "$WASM_FILE" > stellar/contracts/voting/voting_contract.wasm.sha256
+      - save_cache:
+          key: v1-cargo-cache-{{ checksum "stellar/contracts/voting/Cargo.toml" }}-{{ checksum "backend/Cargo.toml" }}
+          paths:
+            - ~/.cargo
+            - stellar/contracts/voting/target
+            - backend/target
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - stellar/contracts/voting/voting_contract.wasm.sha256
+
+  # Job 8 & 9: Static analysis, dependency audit & secret scanning
+  static-analysis-and-secret-scan:
+    executor: python-executor
+    steps:
+      - checkout
+      - run:
+          name: "Job 8 & 9: Run static analysis, infrastructure policy checks, and secret scanning"
+          command: |
+            python -m pip install pyyaml
+            python scripts/verify_pipeline_and_artifacts.py --strict
+
+  # Job 10: Docker image builds
+  docker-image-builds:
+    executor: base-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: "Job 10: Build Django Identity, FastAPI Integration, and Rust Domain Docker images"
+          command: |
+            docker build -t consensus-identity:${CIRCLE_SHA1:-local} ./encryption/biometric
+            docker build -t consensus-fastapi:${CIRCLE_SHA1:-local} -f ./services/api/Dockerfile .
+            docker build -t consensus-backend:${CIRCLE_SHA1:-local} ./backend
+
+  # Job 11: Local service integration tests (Django <-> FastAPI inter-service auth & DIVIPOLA flow)
+  local-integration-tests:
+    executor: python-executor
+    environment:
+      DJANGO_SECRET_KEY: "ci-integration-secret-key-0123456789abcdef0123456789abcdef"
+      INTERNAL_SERVICE_SECRET: "ci-integration-secret-key-012345"
+      PYTHONPATH: ".:encryption/biometric"
+    steps:
+      - checkout
+      - run:
+          name: "Install Django and FastAPI test dependencies"
+          command: |
+            python -m pip install -r encryption/biometric/requirements.txt -r services/api/requirements.txt
+      - run:
+          name: "Job 11: Run end-to-end integration test across Django Identity and FastAPI"
+          command: |
+            python -m pytest tests/test_integration_e2e.py -v
+
+  # Job 12: Artifact packaging, provenance manifest & SHA-256 signatures
+  generate-artifacts-and-hashes:
+    executor: python-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: "Job 12: Generate signed provenance manifest and SHA-256 hashes"
+          command: |
+            python -m pip install pyyaml
+            python scripts/verify_pipeline_and_artifacts.py --emit-artifacts
+      - store_artifacts:
+          path: artifacts
+          destination: consensus-mvp-artifacts
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - artifacts
+
+  # Job 13: Controlled publication to dev/test staging metadata
+  publish-dev-staging:
+    executor: python-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: "Job 13: Verify provenance manifest for dev/test staging promotion"
+          command: |
+            test -f artifacts/provenance-manifest.json
+            test -f artifacts/provenance-manifest.sha256
+            sha256sum -c artifacts/provenance-manifest.sha256
+
+  # Job 14: AWS S3 artifact deployment gated by manual approval and IAM OIDC / role credentials
+  deploy-aws-s3:
+    executor: python-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: "Job 14: Upload verified artifacts to S3 bucket via IAM least-privilege role"
+          command: |
+            python -m pip install boto3
+            python scripts/deploy_artifacts_s3.py --manifest artifacts/provenance-manifest.json
+
+workflows:
+  version: 2
+  consensus-mvp-ci-cd:
+    jobs:
+      - frontend-validate-and-build
+      - django-identity-tests
+      - fastapi-integration-tests
+      - rust-soroban-and-wasm-verify
+      - static-analysis-and-secret-scan
+      - docker-image-builds:
+          requires:
+            - django-identity-tests
+            - fastapi-integration-tests
+      - local-integration-tests:
+          requires:
+            - django-identity-tests
+            - fastapi-integration-tests
+      - generate-artifacts-and-hashes:
+          requires:
+            - frontend-validate-and-build
+            - django-identity-tests
+            - fastapi-integration-tests
+            - rust-soroban-and-wasm-verify
+            - static-analysis-and-secret-scan
+            - local-integration-tests
+      - publish-dev-staging:
+          requires:
+            - generate-artifacts-and-hashes
+      - hold-for-aws-approval:
+          type: approval
+          requires:
+            - publish-dev-staging
+            - docker-image-builds
+          filters:
+            branches:
+              only: main
+      - deploy-aws-s3:
+          requires:
+            - hold-for-aws-approval
+          filters:
+            branches:
+              only: main

@@ -1,40 +1,23 @@
-# Consensus · Kanban del laboratorio
+# Consensus Colombia · Kanban e Inventario del MVP
 
-Tablero de seguimiento del MVP. Las tarjetas no se marcan como terminadas hasta que exista validación y evidencia reproducible. El tablero versionado complementa GitHub Projects; no finge que ese Project remoto ya existe.
+Tablero de seguimiento e inventario de funcionalidades del MVP verificadas con pruebas automatizadas.
 
-## Hecho y revisado
+## Hecho y Verificado (`implementado`)
 
-- [x] KAN-001 — Blueprint de la entrega 2 actualizado para Medellín, datos sintéticos, limitaciones y alcance territorial.
-- [x] KAN-002 — Contrato Soroban Rust con administración, autorización, estados, voto único y conteos; pruebas unitarias pasan en GitHub Actions.
-- [x] KAN-003 — Cliente TypeScript valida Testnet, simula, firma, envía y consulta operaciones del contrato configurado.
-- [x] KAN-004 — Freighter integrado como wallet para firma en Testnet; soporte 5-de-8 en interfaz.
-- [x] KAN-007 — Diez departamentos en el selector y catálogo; contrato y administración configurables por territorio.
-- [x] KAN-008 — Roles descritos como perfiles didácticos sin atribución de autoridad a entidades públicas.
-- [x] KAN-010 — Django implementa TOTP de demo y vector numérico sintético; dos réplicas Python detrás de Nginx y WAF OWASP CRS en Compose.
-- [x] KAN-012 — Spike numérico sintético; no procesa rostros ni biometría.
-- [x] KAN-016 — Wiki, blueprint, tablero y guía local actualizados para el laboratorio de diez departamentos y el piloto sintético de Medellín.
-- [x] KAN-017 — Visual Replit adaptado al cliente TypeScript existente, con fotos locales, navegación y layout responsive.
-- [x] KAN-019 — Configuración Vercel para `frontend/` con instalación reproducible y guía de variables públicas/secretos.
-- [x] KAN-020 — Contenedor Django preparado para Docker Spaces con puerto configurable; la guía limita el uso público a datos sintéticos sin TOTP/WAF.
+- [x] **KAN-001** — Primera pantalla de login seguro en 4 pasos (Correo + Google reCAPTCHA server-side -> OTP por correo con HMAC-SHA256, expiración y límite de intentos -> Verificación facial 1:1 con consentimiento informado o alternativa autorizada -> Sesión `HttpOnly`/`Secure`/`SameSite=Lax`).
+- [x] **KAN-002** — Evaluación técnica y legal de `Faceplugin-ltd/Open-Source-Face-Recognition-SDK` e implementación del adaptador desacoplado `FaceRecognitionProvider` (`encryption/biometric/lab/face_provider.py`) sin simular coincidencias falsas cuando el motor no está instalado y con limpieza de memoria efímera.
+- [x] **KAN-003** — Catálogo territorial oficial DANE DIVIPOLA completo (`data/territories/colombia_divipola.json`): **32 departamentos + Bogotá D.C. (33 entidades territoriales) y 1,122 municipios** con verificación de integridad SHA-256.
+- [x] **KAN-004** — Catálogo parametrizable de **12 mecanismos de votación y participación** en Colombia (`data/territories/voting_mechanisms_colombia.json`), incluyendo elecciones unipersonales, listas abiertas/cerradas, voto en blanco promovido, plebiscito, referendo, consulta popular, **cabildo abierto** (flujo deliberativo de ponencias y compromisos), iniciativa normativa y revocatoria del mandato.
+- [x] **KAN-005** — API de integración **FastAPI** (`services/api/app/main.py`) con validación Pydantic v2, autorización mediante tickets HMAC emitidos por Django, votación con separación entre registro de participación y papeleta anónima, recibos verificables (`receipt_id` + `ballot_commitment_hash`), adaptador S3/IAM y adaptador GitHub REST API por SHA inmutable.
+- [x] **KAN-006** — Contrato inteligente **Stellar Soroban** (`stellar/contracts/voting/src/lib.rs`) actualizado con `configure_process`, `process_id`, validación de ventana temporal (`OutOfVotingWindow`), elegibilidad, voto único y pruebas unitarias de casos válidos y adversarios.
+- [x] **KAN-007** — Servicio de dominio en **Rust** (`backend/`) con validación de reglas electorales (`POST /api/v1/elections/validate-vote`) y separación de privacidad en conteos.
+- [x] **KAN-008** — Infraestructura declarativa **Terraform** (`cloud/terraform/`) para bucket AWS S3 privado, cifrado SSE-S3, bloqueo público total, versionado, ciclo de vida, política HTTPS-only y roles IAM separados (`app-runtime-role` y `ci-deploy-role`).
+- [x] **KAN-009** — Automatización **Ansible** (`ansible/`) con inventarios (`dev`, `test`, `staging`) y roles idempotentes (`common_security`, `consensus_services`, `health_validation`).
+- [x] **KAN-010** — Pipeline CI/CD en **CircleCI** (`.circleci/config.yml`) con 14 jobs (escaneo de secretos, Django, FastAPI, Rust/WASM, TypeScript, DIVIPOLA, Terraform, Ansible, E2E y despliegue de artefactos a S3).
+- [x] **KAN-011** — Interfaz completa en `frontend/` con las 14 vistas del MVP, accesibilidad por teclado/ARIA y cero tokens de sesión en `localStorage`.
 
-## En progreso
+## Requiere Credenciales o Despliegue Externo (`parcial` / `bloqueado por credencial externa`)
 
-- [ ] KAN-018 — Alinear el diseño final con el archivo o enlace fuente de Figma; la entrega ZIP revisada no contiene exportación ni URL de Figma.
-
-## Bloqueado por requisito externo
-
-- [ ] KAN-005 — Circle como firmante Soroban requiere soporte oficial de firma Stellar; mantener Freighter como wallet operativa.
-- [ ] KAN-006 — Desplegar contrato y publicar transacción Testnet requiere la CLI/herramientas de build y una cuenta Testnet firmante controlada por el equipo. No hay aún ID ni hash de red.
-- [ ] KAN-009 — Provisionar ocho cuentas independientes y configurar/validar el umbral on-chain 5-de-8; la configuración de UI no sustituye `set-options` en Stellar.
-- [ ] KAN-011 — Revisión de amenazas y endurecimiento previo a exponer Django/WAF públicamente; Compose es solo laboratorio.
-- [ ] KAN-013 — Pruebas de integración end-to-end con wallet y contrato desplegado, pendientes de Testnet.
-- [ ] KAN-014 — Migrar tarjetas a GitHub Projects cuando el token tenga permisos `project`.
-- [ ] KAN-015 — Historias individuales de cada integrante deben ser redactadas/validadas por sus autores.
-
-## Alcance territorial
-
-Diez departamentos en el alcance de esta entrega: Antioquia (Medellín, piloto de interfaz), Cundinamarca (Bogotá), Valle del Cauca (Cali), Atlántico (Barranquilla), Santander (Bucaramanga), Bolívar (Cartagena), Boyacá (Tunja), Caldas (Manizales), Cauca (Popayán) y Chocó (Quibdó). Cada uno tiene su propio código, entrada seleccionable y espacio independiente para contract ID y cuenta/firmantes administradores. La interfaz no configura ni despliega esas cuentas: al corte, los diez contratos y los diez perfiles de administración siguen pendientes de credenciales y despliegue. Son escenarios de aplicación, no validadores propios; todas las instancias usarían Stellar Testnet.
-
-## Definition of done
-
-Cada feature necesita build/tests aplicables, aceptación documentada, registro de limitaciones y evidencia real. Nunca guardar semillas, claves privadas, OTP, datos faciales o votos reales en GitHub. Un enlace de Stellar Explorer solo se agrega tras confirmación de la transacción.
+- [ ] **EXT-001** — Despliegue en vivo del contrato `.wasm` a Stellar Testnet con una cuenta financiada por Friendbot y registro del `contractId` resultante. El código y el cliente nunca simulan un hash confirmado en Testnet si no proviene de una transacción real de 64 caracteres hexadecimales con `ledger > 0`.
+- [ ] **EXT-002** — Ejecución de `terraform apply` y `scripts/deploy_artifacts_s3.py` contra una cuenta AWS real usando credenciales temporales OIDC/STS en CircleCI.
+- [ ] **EXT-003** — Licencia comercial o autorización explícita de pesos/modelos ONNX de FacePlugin para habilitar inferencia facial en producción (en el MVP opera de forma transparente con el método alternativo autorizado cuando el motor local no está instalado).

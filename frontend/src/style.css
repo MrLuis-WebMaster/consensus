@@ -231,380 +231,553 @@ select { width: 100%; min-height: 40px; padding: .55rem .7rem; color: var(--ink)
 }
 
 /* ==========================================================================
-   Interactive Colombia Map (33 Departments + 1,122 Municipalities/Cities)
+   Institutional Elecciones 2026 Topbar + "¿Dónde podrás votar?" Interactive Map
    ========================================================================== */
-.colombia-map-mount { margin: .85rem 0 1.2rem; }
-.colombia-map-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(300px, .95fr);
-  gap: 1rem;
+.topbar-institutional {
+  flex-direction: column;
   align-items: stretch;
+  padding: 0;
+  background: #ffffff;
+  border-bottom: 3px solid #8a1538;
+  box-shadow: 0 4px 18px rgba(15, 28, 46, 0.08);
 }
-.colombia-map-stage-wrap {
+.topbar-brand-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .75rem 1.5rem;
+}
+.elecciones-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: .35rem .75rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #002e5f 0%, #8a1538 100%);
+  color: #fff;
+  line-height: 1.05;
+  box-shadow: 0 4px 12px rgba(138, 21, 56, 0.24);
+}
+.elecciones-year {
+  font: 900 1.35rem Inter, sans-serif;
+  letter-spacing: -.03em;
+  color: #f8c630;
+}
+.elecciones-title {
+  font: 800 .62rem Inter, sans-serif;
+  letter-spacing: .16em;
+  color: #ffffff;
+}
+.elecciones-sub {
+  font: 600 .56rem Inter, sans-serif;
+  color: #e4eaf2;
+}
+.institutional-nav-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .35rem;
+}
+.inst-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: .42rem .72rem;
+  border-radius: 6px;
+  font-size: .72rem;
+  font-weight: 700;
+  color: #1f2d3d;
+  text-decoration: none;
+  background: #f5f6f8;
+  border: 1px solid #e1e5ec;
+  transition: all .15s ease;
+}
+.inst-nav-pill:hover {
+  background: #eef1f6;
+  color: #8a1538;
+  border-color: #c9cfd8;
+}
+.inst-nav-pill-active {
+  background: #f8c630;
+  color: #1b2430;
+  border-color: #eab516;
+  box-shadow: 0 2px 8px rgba(248, 198, 48, 0.35);
+}
+.topbar-session-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .48rem 1.5rem;
+  background: #0f2537;
+  color: #e8eef5;
+}
+.topbar-session-bar .brand-mark {
+  width: 28px;
+  height: 28px;
+  font-size: .78rem;
+}
+.topbar-session-bar strong {
+  color: #ffffff;
+  font-size: .82rem;
+}
+.topbar-session-bar .subtitle {
+  color: #b8c7d9;
+  font-size: .68rem;
+}
+
+/* "¿Dónde podrás votar?" Section (Registraduría Design) */
+.donde-votar-section {
+  background: #f3ede0 !important;
+  border: 1px solid #e2d8c3 !important;
+  border-radius: 18px !important;
+  padding: 1.65rem 1.85rem !important;
+  box-shadow: 0 12px 32px rgba(45, 35, 20, 0.08);
+}
+.donde-votar-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.38fr) minmax(320px, 0.92fr);
+  gap: 2rem;
+  align-items: start;
+}
+.donde-votar-map-col {
+  min-width: 0;
+}
+.colombia-map-mount {
+  margin: 0;
+}
+.reg-map-wrapper {
   display: flex;
   flex-direction: column;
-  border: 1px solid #2b4e3c;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #10251c;
-  box-shadow: 0 14px 34px rgba(16, 37, 28, 0.18);
+  gap: .65rem;
 }
-.colombia-map-toolbar {
+.reg-map-quickbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: .5rem;
-  padding: .65rem .85rem;
-  background: #163125;
-  border-bottom: 1px solid #284b3a;
+  padding: .5rem .75rem;
+  background: #ffffff;
+  border: 1px solid #dfd6c3;
+  border-radius: 10px;
 }
-.map-mode-group, .map-zoom-group {
+.reg-map-scope-group {
   display: flex;
   flex-wrap: wrap;
   gap: .35rem;
 }
-.map-mode-btn, .map-ctrl-btn {
-  min-height: 31px;
-  padding: .35rem .65rem;
-  font-size: .68rem;
+.reg-scope-btn {
+  min-height: 30px;
+  padding: .3rem .65rem;
+  font-size: .7rem;
   font-weight: 700;
-  color: #cfe0d4;
-  background: #1f4131;
-  border: 1px solid #315c47;
   border-radius: 6px;
+  background: #f4f1ea;
+  color: #2b3945;
+  border: 1px solid #d5ccb8;
 }
-.map-mode-btn:hover, .map-ctrl-btn:hover {
-  background: #295540;
-  color: #fff;
+.reg-scope-btn:hover {
+  background: #e9e3d6;
+  color: #002e5f;
 }
-.map-mode-btn.active {
-  background: #d7a646;
-  color: #152b20;
-  border-color: #ecc067;
+.reg-scope-btn.active {
+  background: #002e5f;
+  color: #ffffff;
+  border-color: #002e5f;
 }
-.colombia-svg-viewport {
-  position: relative;
+.reg-map-stats-pill {
+  font-size: .72rem;
+  color: #4a5568;
+}
+.reg-map-stats-pill strong {
+  color: #8a1538;
+}
+.leaflet-map-canvas {
   width: 100%;
-  aspect-ratio: 860 / 920;
-  max-height: 670px;
+  height: 520px;
+  border-radius: 12px;
   overflow: hidden;
-  cursor: grab;
-  background: #10251c;
+  border: 1px solid #d5cbb8;
+  box-shadow: 0 8px 24px rgba(15, 28, 46, 0.12);
+  background: #aad3df;
+  z-index: 1;
 }
-.colombia-svg-viewport:active { cursor: grabbing; }
-#colombia-interactive-svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  user-select: none;
-}
-.map-grid-line {
-  stroke: #ffffff12;
-  stroke-width: 1;
-  stroke-dasharray: 4 4;
-}
-.map-grid-label {
-  fill: #7fa28d;
-  font: 600 10px ui-monospace, monospace;
-  pointer-events: none;
-}
-.map-sea-label {
-  fill: #648f7855;
-  font: 800 13px Inter, sans-serif;
-  letter-spacing: .28em;
-  pointer-events: none;
-}
-.map-border-label {
-  fill: #7ca08c44;
-  font: 700 11px Inter, sans-serif;
-  letter-spacing: .2em;
-  pointer-events: none;
-}
-.colombia-land-silhouette {
-  stroke: #579673;
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-.inset-box {
-  fill: #173427cc;
-  stroke: #579673;
-  stroke-width: 1.4;
-  stroke-dasharray: 4 2;
-}
-.inset-title {
-  fill: #dbe9de;
-  font: 800 9.5px Inter, sans-serif;
-  letter-spacing: .08em;
-  pointer-events: none;
-}
-.inset-subtitle {
-  fill: #9ab8a4;
-  font: 500 8.5px Inter, sans-serif;
-  pointer-events: none;
-}
-.map-spoke-line {
-  stroke: #ecc06755;
-  stroke-width: 1.1;
-  pointer-events: none;
-}
-.map-point {
-  cursor: pointer;
-  transition: r .15s ease, fill .15s ease, stroke-width .15s ease;
-}
-.map-point-mpio {
-  fill: #74b890;
-  fill-opacity: .72;
-  stroke: #11281e;
-  stroke-width: .7;
-}
-.map-point-mpio.is-active-dept {
-  fill: #a7ebbd;
-  fill-opacity: .95;
-  stroke: #132d21;
-  stroke-width: 1.1;
-}
-.map-point-capital {
-  fill: #f0be59;
-  fill-opacity: .96;
-  stroke: #182f23;
-  stroke-width: 1.5;
-}
-.map-point:hover {
-  fill: #ffffff !important;
-  fill-opacity: 1 !important;
-  stroke: #f0be59 !important;
-  stroke-width: 2.4 !important;
-}
-.map-point.is-selected-mpio {
-  fill: #ff6b4a !important;
-  fill-opacity: 1 !important;
-  stroke: #fff !important;
-  stroke-width: 2.2 !important;
-}
-.map-cap-label {
-  fill: #d7e6dc;
-  font: 600 9.5px Inter, sans-serif;
-  paint-order: stroke;
-  stroke: #0e2219;
-  stroke-width: 3px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  cursor: pointer;
-}
-.map-cap-label-active {
-  fill: #ffe094;
-  font-weight: 800;
-  font-size: 10.8px;
-}
-.map-pulse-outer {
-  fill: none;
-  stroke: #ff785a;
-  stroke-width: 1.6;
-  stroke-opacity: .55;
-  pointer-events: none;
-  animation: mapPulseRing 2s infinite ease-out;
-}
-.map-pulse-inner {
-  fill: #ff785a28;
-  stroke: #ff9d85;
-  stroke-width: 1.4;
-  pointer-events: none;
-}
-.map-pulse-core {
-  fill: #ff6b4a;
-  stroke: #ffffff;
-  stroke-width: 1.8;
-  pointer-events: none;
-}
-.map-active-callout-bg {
-  fill: #132a1fee;
-  stroke: #f0be59;
-  stroke-width: 1.2;
-  pointer-events: none;
-}
-.map-active-callout-text {
-  fill: #fff8e6;
-  font: 700 10.5px Inter, sans-serif;
-  pointer-events: none;
-}
-@keyframes mapPulseRing {
-  0% { r: 8px; stroke-opacity: .85; }
-  100% { r: 22px; stroke-opacity: 0; }
-}
-.map-hover-tooltip {
-  position: absolute;
-  z-index: 10;
-  width: 225px;
-  padding: .55rem .7rem;
-  border-radius: 9px;
-  background: #10241bf2;
-  border: 1px solid #f0be59;
-  color: #f4f7f2;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  gap: .18rem;
-}
-.map-hover-tooltip .tooltip-badge {
-  color: #f0be59;
-  font-size: .58rem;
-  font-weight: 800;
-  letter-spacing: .1em;
-}
-.map-hover-tooltip strong { font-size: .78rem; color: #fff; }
-.map-hover-tooltip span { font-size: .68rem; color: #c7dcd0; }
-.map-hover-tooltip small { font-size: .62rem; color: #96b5a3; }
-.map-legend-bar {
+.reg-map-statusbar {
   display: flex;
   flex-wrap: wrap;
-  gap: .75rem 1.1rem;
-  padding: .55rem .85rem;
-  background: #142c21;
-  border-top: 1px solid #264837;
-  color: #bdd1c4;
-  font-size: .66rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: .65rem;
+  padding: .55rem .8rem;
+  background: #ffffff;
+  border: 1px solid #dfd6c3;
+  border-radius: 10px;
+  font-size: .72rem;
 }
-.map-legend-bar span { display: inline-flex; align-items: center; gap: .38rem; }
-.legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-.legend-dot-active { background: #ff6b4a; box-shadow: 0 0 0 2px #fff; }
-.legend-dot-capital { background: #f0be59; }
-.legend-dot-dept-mpio { background: #a7ebbd; }
-.legend-dot-mpio { background: #74b890; opacity: .75; }
+.reg-status-active {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem;
+  color: #1f2d3d;
+}
+.reg-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22a06b;
+  box-shadow: 0 0 0 3px rgba(34, 160, 107, 0.2);
+}
+.reg-status-coords {
+  font: 600 .66rem ui-monospace, monospace;
+  color: #002e5f;
+  background: #edf2f7;
+  padding: .15rem .45rem;
+  border-radius: 99px;
+}
+.reg-status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .65rem;
+  font-size: .66rem;
+  color: #4a5568;
+}
+.reg-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .28rem;
+}
+.reg-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.reg-dot-orange { background: #f29d38; border: 1.5px solid #d97917; }
+.reg-dot-yellow { background: #d9d943; border: 1.5px solid #b5b51f; }
+.reg-dot-green { background: #6ec446; border: 1.5px solid #4ca027; }
+.reg-dot-pin { background: #2986cc; border: 1.5px solid #16537e; }
 
-.colombia-map-sidepanel {
+/* Leaflet Cluster Circle Badges (matching Registraduría screenshot) */
+.reg-cluster-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+.reg-cluster-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+  color: #1f2421;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.reg-cluster-badge:hover {
+  transform: scale(1.1);
+  z-index: 999 !important;
+}
+.reg-cluster-orange {
+  background: rgba(243, 156, 56, 0.78);
+  border: 5px solid rgba(245, 176, 92, 0.55);
+  box-shadow: 0 3px 10px rgba(211, 117, 16, 0.35);
+}
+.reg-cluster-yellow {
+  background: rgba(220, 218, 66, 0.78);
+  border: 5px solid rgba(232, 230, 102, 0.55);
+  box-shadow: 0 3px 10px rgba(175, 173, 25, 0.32);
+}
+.reg-cluster-green {
+  background: rgba(110, 198, 70, 0.78);
+  border: 4px solid rgba(142, 214, 108, 0.55);
+  box-shadow: 0 3px 10px rgba(68, 153, 30, 0.3);
+}
+.reg-cluster-selected {
+  box-shadow: 0 0 0 4px #8a1538, 0 6px 18px rgba(138, 21, 56, 0.45) !important;
+  transform: scale(1.08);
+}
+.reg-blue-pin-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+.reg-blue-pin {
+  cursor: pointer;
+  transition: transform .15s ease;
+}
+.reg-blue-pin:hover,
+.reg-blue-pin-active {
+  transform: scale(1.18) translateY(-2px);
+}
+.reg-leaflet-tooltip {
+  background: rgba(15, 37, 55, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid #f8c630 !important;
+  border-radius: 8px !important;
+  padding: .45rem .65rem !important;
+  font-size: .72rem !important;
+  line-height: 1.4 !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28) !important;
+}
+
+/* Right Column: "¿Dónde podrás votar?" Typography & Pill Selectors */
+.donde-votar-controls-col {
   display: flex;
   flex-direction: column;
-  gap: .8rem;
-  min-width: 0;
+  justify-content: center;
+  gap: .85rem;
+  padding-top: .35rem;
 }
-.map-selected-card {
-  padding: 1rem 1.1rem;
-  border-radius: 12px;
-  border: 1px solid #c9d8cb;
-  background: linear-gradient(180deg, #fffefa 0%, #f2f6ef 100%);
+.donde-votar-heading {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: clamp(1.75rem, 2.6vw, 2.35rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -.02em;
+  color: #7a122e;
 }
-.map-selected-header {
+.donde-votar-subtitle {
+  margin: 0 0 .35rem;
+  font-size: .95rem;
+  line-height: 1.5;
+  color: #4a4a4a;
+}
+.donde-votar-selectors-stack {
   display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+.reg-select-field {
+  display: block;
+  width: 100%;
+}
+.reg-select-row-with-reset {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+}
+.reg-select-grow {
+  flex: 1;
+}
+.reg-pill-select {
+  width: 100%;
+  min-height: 46px;
+  padding: .65rem 2.5rem .65rem 1.15rem;
+  border-radius: 999px !important;
+  border: 1px solid #e0d8c8 !important;
+  background-color: #ffffff !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238a1538' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 1rem center !important;
+  background-size: 14px 14px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  font-size: .88rem !important;
+  font-weight: 600 !important;
+  color: #2d3748 !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.reg-pill-select:hover,
+.reg-pill-select:focus {
+  border-color: #8a1538 !important;
+  box-shadow: 0 0 0 3px rgba(138, 21, 56, 0.14);
+  outline: none;
+}
+.reg-reset-btn {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
+  padding: 0;
+  border-radius: 9px !important;
+  background: #002e5f !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-size: 1.25rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 46, 95, 0.25);
+  cursor: pointer;
+  transition: background .15s ease, transform .12s ease;
+}
+.reg-reset-btn:hover {
+  background: #004080 !important;
+  transform: translateY(-1px);
+}
+.reg-station-runner-card {
+  margin-top: .25rem;
+  padding: 1rem 1.15rem;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #dfd6c3;
+  box-shadow: 0 6px 18px rgba(25, 35, 45, 0.06);
+}
+.reg-station-runner-head {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: .5rem;
-  margin-bottom: .45rem;
+  margin-bottom: .4rem;
 }
-.map-coord-pill {
-  font: 600 .66rem ui-monospace, monospace;
-  color: #365a45;
-  background: #e5efe6;
-  padding: .24rem .5rem;
-  border-radius: 99px;
-}
-.map-selected-card h3 {
-  margin: .15rem 0 .4rem;
-  font: 700 1.28rem Georgia, serif;
-  color: var(--green-dark);
-}
-.map-selected-sub {
-  margin: 0 0 .65rem;
-  font-size: .73rem;
-  line-height: 1.55;
-  color: #46584e;
-}
-.map-cta-link {
-  text-decoration: none;
+.reg-station-badge {
   display: inline-flex;
   align-items: center;
-  font-size: .72rem;
-  padding: .48rem .78rem;
-}
-.map-dept-directory, .map-mpio-directory {
-  padding: .85rem .95rem;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: var(--paper);
-}
-.map-dept-directory-head {
-  display: flex;
-  flex-direction: column;
-  gap: .3rem;
-  margin-bottom: .55rem;
-}
-.map-dept-directory-head small { color: var(--muted); font-size: .67rem; }
-.map-all-depts-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .32rem;
-  max-height: 215px;
-  overflow-y: auto;
-  padding-right: .2rem;
-}
-.map-dept-item {
-  min-height: 32px;
-  padding: .35rem .5rem;
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  background: #f8f7f1;
-  border: 1px solid #e5e3d8;
-  border-radius: 6px;
-  color: var(--ink);
-  font-size: .68rem;
-  text-align: left;
-}
-.map-dept-item:hover, .map-dept-item.selected {
-  background: #e8f1e8;
-  border-color: #6b9a78;
-  color: var(--green-dark);
-}
-.map-dept-code {
-  font: 700 .62rem ui-monospace, monospace;
-  color: #6d7b71;
-}
-.map-dept-name {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 700;
-}
-.map-dept-count {
-  font: 600 .6rem ui-monospace, monospace;
-  padding: .1rem .35rem;
+  padding: .22rem .58rem;
   border-radius: 99px;
-  background: #eae8de;
-  color: #5b695f;
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  background: #fde8ef;
+  color: #8a1538;
 }
-.map-dept-mpios-chips {
+.reg-station-code {
+  font: 700 .68rem ui-monospace, monospace;
+  color: #002e5f;
+  background: #edf2f7;
+  padding: .2rem .5rem;
+  border-radius: 6px;
+}
+.reg-station-runner-card h3 {
+  margin: .15rem 0 .25rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #002e5f;
+}
+.reg-station-address {
+  margin: 0 0 .5rem;
+  font-size: .78rem;
+  color: #4a5568;
+}
+.reg-station-metrics {
   display: flex;
   flex-wrap: wrap;
-  gap: .32rem;
-  max-height: 175px;
+  gap: .45rem .85rem;
+  margin-bottom: .75rem;
+  font-size: .72rem;
+  color: #2d3748;
+}
+.reg-station-metrics span {
+  background: #f7f4ec;
+  padding: .22rem .55rem;
+  border-radius: 6px;
+  border: 1px solid #e6decb;
+}
+.reg-station-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.reg-run-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: .5rem .95rem;
+  border-radius: 8px;
+  font-size: .76rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.reg-run-btn-primary {
+  background: #8a1538 !important;
+  color: #ffffff !important;
+  border: 1px solid #8a1538 !important;
+}
+.reg-run-btn-primary:hover {
+  background: #6e0e2b !important;
+}
+.reg-run-btn-secondary {
+  background: #002e5f !important;
+  color: #ffffff !important;
+  border: 1px solid #002e5f !important;
+}
+.donde-votar-search-box {
+  margin-top: .2rem;
+}
+.reg-pill-input {
+  width: 100%;
+  min-height: 40px;
+  padding: .5rem 1rem;
+  border-radius: 999px !important;
+  border: 1px solid #dcd3c2 !important;
+  background: #ffffff !important;
+  font-size: .78rem !important;
+}
+.reg-quick-directory {
+  margin-top: .65rem;
+  padding: .75rem .9rem;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #dfd6c3;
+}
+.reg-quick-directory-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .5rem;
+  font-size: .74rem;
+  color: #2d3748;
+}
+.reg-quick-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  max-height: 120px;
   overflow-y: auto;
-  padding-top: .2rem;
 }
-.map-mpio-chip {
+.reg-entity-chip {
   min-height: 28px;
-  padding: .28rem .55rem;
-  font-size: .66rem;
-  font-weight: 650;
-  color: #334a3e;
-  background: #f5f4ec;
-  border: 1px solid #dfddd1;
-  border-radius: 99px;
+  padding: .25rem .6rem;
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 600;
+  background: #f6f3ec;
+  color: #2d3748;
+  border: 1px solid #e0d8c6;
 }
-.map-mpio-chip span {
-  font: 600 .6rem ui-monospace, monospace;
-  color: #77847b;
+.reg-entity-chip span {
+  font: 700 .62rem ui-monospace, monospace;
+  color: #8a1538;
+  margin-left: .2rem;
 }
-.map-mpio-chip:hover, .map-mpio-chip.selected {
-  background: var(--green-dark);
-  color: #fff;
-  border-color: var(--green-dark);
+.reg-entity-chip:hover,
+.reg-entity-chip.selected {
+  background: #002e5f;
+  color: #ffffff;
+  border-color: #002e5f;
 }
-.map-mpio-chip.selected span { color: #f0be59; }
+.reg-entity-chip.selected span {
+  color: #f8c630;
+}
 
-@media (max-width: 960px) {
-  .colombia-map-layout { grid-template-columns: 1fr; }
-  .colombia-svg-viewport { max-height: 520px; }
+@media (max-width: 980px) {
+  .donde-votar-layout {
+    grid-template-columns: 1fr;
+    gap: 1.35rem;
+  }
+  .leaflet-map-canvas {
+    height: 430px;
+  }
+  .topbar-brand-cluster {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
+
 

@@ -1,663 +1,631 @@
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import {
   activeDivipolaCodes,
   allDepartments,
-  type DepartmentEntry,
+  allTerritorialEntities,
   getDepartmentByCode,
   getMunicipalityByCode,
-  type MunicipalityEntry,
+  getVotingStationsForMunicipality,
   selectDepartmentAndMunicipality,
 } from './territories';
 
-export type MapFilterMode = 'all' | 'capitals' | 'active_department';
-
-type ProjectedPoint = {
-  x: number;
-  y: number;
-  isInset: boolean;
-  dept: DepartmentEntry;
-  mpio: MunicipalityEntry;
+type ClusterHub = {
+  id: string;
+  label: string;
+  count: number;
+  tier: 'orange' | 'yellow' | 'green';
+  lat: number;
+  lon: number;
+  deptCode: string;
+  mpioCode: string;
+  zoomTarget: number;
 };
 
-// Geographic bounding box for continental Colombia
-const LON_MIN = -79.25;
-const LON_MAX = -66.65;
-const LAT_MIN = -4.45;
-const LAT_MAX = 12.65;
+type BluePinHub = {
+  id: string;
+  title: string;
+  subtitle: string;
+  lat: number;
+  lon: number;
+  deptCode: string;
+  mpioCode: string;
+};
 
-const SVG_WIDTH = 860;
-const SVG_HEIGHT = 960;
-const PAD_LEFT = 55;
-const PAD_RIGHT = 45;
-const PAD_TOP = 55;
-const PAD_BOTTOM = 55;
-
-// Accurate continental silhouette outline of Colombia (lon, lat vertices)
-const COLOMBIA_OUTLINE_COORDS: Array<[number, number]> = [
-  [-71.65, 12.45], // Punta Gallinas (La Guajira)
-  [-71.15, 11.85],
-  [-72.25, 11.75],
-  [-72.92, 11.55], // Riohacha
-  [-73.55, 11.28],
-  [-74.22, 11.25], // Santa Marta
-  [-74.85, 11.05], // Barranquilla
-  [-75.52, 10.42], // Cartagena
-  [-75.68, 9.42],  // Golfo de Morrosquillo
-  [-76.42, 8.85],  // Urabá / Arboletes
-  [-76.75, 7.88],  // Turbo / Apartadó
-  [-77.18, 8.15],  // Acandí / Darién
-  [-77.88, 7.22],  // Juradó (Chocó)
-  [-77.45, 6.22],  // Bahía Solano
-  [-77.35, 5.52],  // Nuquí
-  [-77.38, 4.25],  // Bajo Baudó
-  [-77.08, 3.88],  // Buenaventura
-  [-77.85, 2.95],  // Guapi
-  [-78.82, 1.82],  // Tumaco (Nariño)
-  [-78.95, 1.42],  // Frontera Ecuador costa
-  [-77.68, 0.82],  // Ipiales
-  [-76.85, 0.25],  // Putumayo frontera
-  [-75.25, -0.12], // Puerto Leguízamo
-  [-73.85, -1.25], // Río Putumayo
-  [-71.95, -2.15], // Amazonas norte
-  [-70.12, -3.15], // Tarapacá
-  [-69.95, -4.22], // Leticia (extremo sur Amazonas)
-  [-69.55, -1.55], // La Pedrera / Apaporis
-  [-69.85, 0.15],  // Vaupés / Mitú
-  [-69.15, 1.18],  // frontera Brasil
-  [-67.08, 1.22],  // Piedra del Cocuy (Guainía)
-  [-67.45, 2.55],
-  [-67.68, 3.88],  // Inírida
-  [-67.82, 5.25],  // Vichada Orinoco
-  [-67.48, 6.19],  // Puerto Carreño (Vichada)
-  [-69.25, 6.12],  // Río Meta / Cravo Norte
-  [-70.73, 7.08],  // Arauca
-  [-72.05, 7.02],  // Saravena / Cubará
-  [-72.48, 7.89],  // Cúcuta
-  [-72.78, 8.65],  // Catatumbo
-  [-73.35, 9.55],  // Serranía del Perijá
-  [-72.85, 10.65], // Fonseca / Maicao
-  [-71.98, 11.45],
-  [-71.65, 12.45],
+// Cluster markers matching the Registraduría / Elecciones 2026 visual reference across Colombia & the World
+const REGIONAL_CLUSTERS: ClusterHub[] = [
+  // Colombia high-density clusters (Orange)
+  {
+    id: 'cl-andina',
+    label: 'Región Andina Central (Antioquia, Bogotá D.C., Cundinamarca, Boyacá, Eje Cafetero)',
+    count: 8598,
+    tier: 'orange',
+    lat: 5.95,
+    lon: -75.15,
+    deptCode: '05',
+    mpioCode: '05001',
+    zoomTarget: 8,
+  },
+  {
+    id: 'cl-pacifico',
+    label: 'Región Pacífico y Suroccidente (Valle del Cauca, Cauca, Nariño, Tolima, Huila)',
+    count: 3035,
+    tier: 'orange',
+    lat: 3.15,
+    lon: -76.52,
+    deptCode: '76',
+    mpioCode: '76001',
+    zoomTarget: 8,
+  },
+  {
+    id: 'cl-caribe',
+    label: 'Región Caribe (Atlántico, Bolívar, Magdalena, Cesar, Córdoba, Sucre, La Guajira)',
+    count: 1396,
+    tier: 'orange',
+    lat: 10.18,
+    lon: -74.92,
+    deptCode: '13',
+    mpioCode: '13001',
+    zoomTarget: 8,
+  },
+  {
+    id: 'cl-santanderes',
+    label: 'Nororiente y Llanos (Santander, Norte de Santander, Arauca, Casanare)',
+    count: 192,
+    tier: 'orange',
+    lat: 5.75,
+    lon: -72.05,
+    deptCode: '68',
+    mpioCode: '68001',
+    zoomTarget: 8,
+  },
+  // Colombia medium clusters (Yellow)
+  {
+    id: 'cl-orinoquia',
+    label: 'Orinoquía y Oriente (Meta, Vichada, Guainía, Guaviare)',
+    count: 77,
+    tier: 'yellow',
+    lat: 3.65,
+    lon: -69.85,
+    deptCode: '50',
+    mpioCode: '50001',
+    zoomTarget: 7,
+  },
+  {
+    id: 'cl-amazonia',
+    label: 'Amazonía Colombiana (Caquetá, Putumayo, Amazonas, Vaupés)',
+    count: 89,
+    tier: 'yellow',
+    lat: 1.52,
+    lon: -73.25,
+    deptCode: '18',
+    mpioCode: '18001',
+    zoomTarget: 7,
+  },
+  // International & Caribbean clusters (Green — matching the screenshot)
+  {
+    id: 'cl-san-andres',
+    label: 'Archipiélago de San Andrés, Providencia y Santa Catalina',
+    count: 8,
+    tier: 'green',
+    lat: 12.5847,
+    lon: -81.7006,
+    deptCode: '88',
+    mpioCode: '88001',
+    zoomTarget: 10,
+  },
+  {
+    id: 'cl-panama',
+    label: 'Panamá — Puestos Consulares (Ciudad de Panamá, Colón)',
+    count: 3,
+    tier: 'green',
+    lat: 8.9824,
+    lon: -79.5199,
+    deptCode: 'EXT-PA',
+    mpioCode: 'EXT-PA-PTY',
+    zoomTarget: 9,
+  },
+  {
+    id: 'cl-costa-rica',
+    label: 'Costa Rica — Puestos Consulares (San José)',
+    count: 2,
+    tier: 'green',
+    lat: 9.9281,
+    lon: -84.0907,
+    deptCode: 'EXT-CR',
+    mpioCode: 'EXT-CR-SJO',
+    zoomTarget: 9,
+  },
+  {
+    id: 'cl-centroamerica-norte',
+    label: 'Centroamérica Norte y México — Puestos Consulares',
+    count: 4,
+    tier: 'green',
+    lat: 14.6349,
+    lon: -89.5,
+    deptCode: 'EXT-MX',
+    mpioCode: 'EXT-MX-MEX',
+    zoomTarget: 6,
+  },
+  {
+    id: 'cl-rep-dominicana',
+    label: 'República Dominicana — Puestos Consulares (Santo Domingo)',
+    count: 3,
+    tier: 'green',
+    lat: 18.7357,
+    lon: -70.1627,
+    deptCode: 'EXT-DO',
+    mpioCode: 'EXT-DO-SDQ',
+    zoomTarget: 8,
+  },
+  {
+    id: 'cl-venezuela-central',
+    label: 'Venezuela — Puestos Consulares (Caracas, Maracaibo, San Cristóbal)',
+    count: 6,
+    tier: 'green',
+    lat: 10.65,
+    lon: -68.85,
+    deptCode: 'EXT-VE',
+    mpioCode: 'EXT-VE-CCS',
+    zoomTarget: 7,
+  },
+  {
+    id: 'cl-trinidad-oriente',
+    label: 'Caribe Oriental y Trinidad y Tobago — Puestos Consulares',
+    count: 5,
+    tier: 'green',
+    lat: 10.45,
+    lon: -62.45,
+    deptCode: 'EXT-DO',
+    mpioCode: 'EXT-TT-POS',
+    zoomTarget: 8,
+  },
+  {
+    id: 'cl-ecuador',
+    label: 'Ecuador — Puestos Consulares (Quito, Guayaquil, Tulcán)',
+    count: 3,
+    tier: 'green',
+    lat: -1.25,
+    lon: -78.85,
+    deptCode: 'EXT-EC',
+    mpioCode: 'EXT-EC-UIO',
+    zoomTarget: 7,
+  },
+  {
+    id: 'cl-usa',
+    label: 'Estados Unidos — Puestos Consulares (Miami, Nueva York, Washington, Houston, Orlando)',
+    count: 42,
+    tier: 'orange',
+    lat: 28.5383,
+    lon: -81.3792,
+    deptCode: 'EXT-US',
+    mpioCode: 'EXT-US-MIA',
+    zoomTarget: 5,
+  },
+  {
+    id: 'cl-espana',
+    label: 'España — Puestos Consulares (Madrid, Barcelona, Valencia, Sevilla)',
+    count: 35,
+    tier: 'orange',
+    lat: 40.4168,
+    lon: -3.7038,
+    deptCode: 'EXT-ES',
+    mpioCode: 'EXT-ES-MAD',
+    zoomTarget: 6,
+  },
+  {
+    id: 'cl-cono-sur',
+    label: 'Perú, Chile y Argentina — Puestos Consulares (Lima, Santiago, Buenos Aires)',
+    count: 14,
+    tier: 'green',
+    lat: -12.0464,
+    lon: -77.0428,
+    deptCode: 'EXT-PE',
+    mpioCode: 'EXT-PE-LIM',
+    zoomTarget: 4,
+  },
+  {
+    id: 'cl-europa-global',
+    label: 'Francia, Reino Unido y Canadá — Puestos Consulares',
+    count: 12,
+    tier: 'green',
+    lat: 48.8566,
+    lon: 2.3522,
+    deptCode: 'EXT-EU',
+    mpioCode: 'EXT-FR-PAR',
+    zoomTarget: 5,
+  },
 ];
 
-export function projectCoord(
-  lon: number,
-  lat: number,
-  deptCode: string,
-): { x: number; y: number; isInset: boolean } {
-  // Archipiélago de San Andrés, Providencia y Santa Catalina (dept 88) -> Inset box top-left
-  if (deptCode === '88' || lon < -80.0) {
-    const insetX = 118 + (lon - -81.72) * 160;
-    const insetY = 128 - (lat - 12.55) * 95;
-    return {
-      x: Math.max(55, Math.min(205, Number(insetX.toFixed(1)))),
-      y: Math.max(62, Math.min(172, Number(insetY.toFixed(1)))),
-      isInset: true,
-    };
-  }
+// Blue teardrop pins matching the screenshot (Jamaica, San Juan, Georgetown, Manaos/Amazonas, etc.)
+const FEATURED_BLUE_PINS: BluePinHub[] = [
+  {
+    id: 'pin-jamaica',
+    title: 'Kingston, Jamaica',
+    subtitle: 'Puesto Consular Habilitado · Caribe',
+    lat: 18.0179,
+    lon: -76.8099,
+    deptCode: 'EXT-DO',
+    mpioCode: 'EXT-JM-KIN',
+  },
+  {
+    id: 'pin-sanjuan',
+    title: 'San Juan, Puerto Rico',
+    subtitle: 'Puesto Consular Habilitado · Caribe',
+    lat: 18.4655,
+    lon: -66.1057,
+    deptCode: 'EXT-DO',
+    mpioCode: 'EXT-PR-SJU',
+  },
+  {
+    id: 'pin-georgetown',
+    title: 'Georgetown, Guyana',
+    subtitle: 'Circunscripción Internacional · Suramérica',
+    lat: 6.8013,
+    lon: -58.1551,
+    deptCode: 'EXT-BR',
+    mpioCode: 'EXT-GY-GEO',
+  },
+  {
+    id: 'pin-manaos',
+    title: 'Manaos / Leticia Frontera Amazónica',
+    subtitle: 'Puesto Consular y Fronterizo Sur',
+    lat: -3.119,
+    lon: -60.0217,
+    deptCode: 'EXT-BR',
+    mpioCode: 'EXT-BR-MAO',
+  },
+  {
+    id: 'pin-leticia',
+    title: 'Leticia, Amazonas (91001)',
+    subtitle: 'Capital Departamental · Extremo Sur de Colombia',
+    lat: -4.2153,
+    lon: -69.9406,
+    deptCode: '91',
+    mpioCode: '91001',
+  },
+];
 
-  const usableW = SVG_WIDTH - PAD_LEFT - PAD_RIGHT;
-  const usableH = SVG_HEIGHT - PAD_TOP - PAD_BOTTOM;
-
-  const normX = (lon - LON_MIN) / (LON_MAX - LON_MIN);
-  const normY = (LAT_MAX - lat) / (LAT_MAX - LAT_MIN);
-
-  const x = PAD_LEFT + normX * usableW;
-  const y = PAD_TOP + normY * usableH;
-
-  return {
-    x: Number(x.toFixed(1)),
-    y: Number(y.toFixed(1)),
-    isInset: false,
-  };
+function createClusterIcon(count: number, tier: 'orange' | 'yellow' | 'green'): L.DivIcon {
+  const size = count >= 1000 ? 48 : count >= 50 ? 42 : 36;
+  return L.divIcon({
+    className: `registraduria-cluster-wrapper`,
+    html: `<div class="reg-cluster reg-cluster-${tier}" style="width:${size}px;height:${size}px;"><span>${count}</span></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
 }
 
-function buildOutlinePath(): string {
-  return COLOMBIA_OUTLINE_COORDS.map(([lon, lat], idx) => {
-    const { x, y } = projectCoord(lon, lat, '00');
-    return `${idx === 0 ? 'M' : 'L'}${x},${y}`;
-  }).join(' ') + ' Z';
+function createBluePinIcon(isSelected = false): L.DivIcon {
+  const scale = isSelected ? 1.22 : 1;
+  const fill = isSelected ? '#d93829' : '#2583d8';
+  return L.divIcon({
+    className: 'registraduria-blue-pin-wrapper',
+    html: `
+      <div class="reg-pin-box" style="transform:scale(${scale});">
+        <svg viewBox="0 0 28 40" width="28" height="40" aria-hidden="true">
+          <path d="M14 1C6.8 1 1 6.8 1 14c0 9.6 13 24.5 13 24.5S27 23.6 27 14C27 6.8 21.2 1 14 1z" fill="${fill}" stroke="#ffffff" stroke-width="2"/>
+          <circle cx="14" cy="14" r="5" fill="#ffffff"/>
+        </svg>
+      </div>
+    `,
+    iconSize: [28, 40],
+    iconAnchor: [14, 39],
+    popupAnchor: [0, -36],
+  });
+}
+
+function createMunicipalityDotIcon(isCapital: boolean, isSelected: boolean): L.DivIcon {
+  const size = isSelected ? 18 : isCapital ? 14 : 10;
+  const cls = isSelected
+    ? 'reg-mpio-dot reg-mpio-dot-selected'
+    : isCapital
+      ? 'reg-mpio-dot reg-mpio-dot-capital'
+      : 'reg-mpio-dot';
+  return L.divIcon({
+    className: 'registraduria-mpio-dot-wrapper',
+    html: `<div class="${cls}" style="width:${size}px;height:${size}px;"></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -8],
+  });
 }
 
 export function initInteractiveColombiaMap(
   container: HTMLElement,
-  onSelectTerritory: (deptCode: string, mpioCode: string) => void,
+  onSelectTerritory: (deptCode: string, mpioCode: string, stationCode?: string) => void,
 ): {
-  refreshSelection: () => void;
+  refreshSelection: (flyToTarget?: boolean) => void;
+  resetWorldColombiaView: () => void;
 } {
-  let filterMode: MapFilterMode = 'all';
-  let zoom = 1;
-  let panX = 0;
-  let panY = 0;
-  let isDragging = false;
-  let dragStartX = 0;
-  let dragStartY = 0;
-
-  // Pre-project all 1,122 municipalities once for fast 60fps interaction
-  const allPoints: ProjectedPoint[] = [];
-  const capitalPointsByDept = new Map<string, ProjectedPoint>();
-
-  for (const dept of allDepartments) {
-    for (const mpio of dept.municipalities) {
-      const { x, y, isInset } = projectCoord(mpio.lon, mpio.lat, dept.code);
-      const pt: ProjectedPoint = { x, y, isInset, dept, mpio };
-      allPoints.push(pt);
-      if (mpio.is_capital || !capitalPointsByDept.has(dept.code)) {
-        capitalPointsByDept.set(dept.code, pt);
-      }
-    }
-  }
-
-  const outlinePathD = buildOutlinePath();
-
-  // Graticule lines
-  const latLines = [12, 8, 4, 0, -4].map((lat) => {
-    const p1 = projectCoord(LON_MIN, lat, '00');
-    const p2 = projectCoord(LON_MAX, lat, '00');
-    const label = lat > 0 ? `${lat}°N` : lat < 0 ? `${Math.abs(lat)}°S` : '0° Ecuador';
-    return `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" class="map-grid-line" />
-            <text x="${p2.x - 6}" y="${p2.y - 5}" class="map-grid-label" text-anchor="end">${label}</text>`;
-  });
-
-  const lonLines = [-78, -74, -70].map((lon) => {
-    const p1 = projectCoord(lon, LAT_MAX, '00');
-    const p2 = projectCoord(lon, LAT_MIN, '00');
-    return `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" class="map-grid-line" />
-            <text x="${p1.x + 4}" y="${p1.y + 12}" class="map-grid-label">${Math.abs(lon)}°W</text>`;
-  });
+  let showAll1122Dots = false;
 
   container.innerHTML = `
-    <div class="colombia-map-layout">
-      <!-- COLUMNA IZQUIERDA: LIENZO INTERACTIVO SVG CON LOS 1,122 PUNTOS -->
-      <div class="colombia-map-stage-wrap">
-        <div class="colombia-map-toolbar" role="toolbar" aria-label="Controles del mapa interactivo de Colombia">
-          <div class="map-mode-group">
-            <button type="button" class="map-mode-btn active" data-map-mode="all">
-              <span>●</span> Todos los puntos (1,122 ciudades + 33 dptos)
-            </button>
-            <button type="button" class="map-mode-btn" data-map-mode="capitals">
-              <span>★</span> Solo 33 Capitales
-            </button>
-            <button type="button" class="map-mode-btn" data-map-mode="active_department">
-              <span>⌖</span> Municipios del Dpto Activo
-            </button>
-          </div>
-          <div class="map-zoom-group">
-            <button type="button" class="map-ctrl-btn" id="map-zoom-in" title="Acercar mapa" aria-label="Acercar mapa">+</button>
-            <button type="button" class="map-ctrl-btn" id="map-zoom-out" title="Alejar mapa" aria-label="Alejar mapa">−</button>
-            <button type="button" class="map-ctrl-btn" id="map-focus-dept" title="Enfocar departamento seleccionado">Enfocar Dpto</button>
-            <button type="button" class="map-ctrl-btn" id="map-reset-view" title="Restablecer vista nacional de Colombia">Vista Nacional</button>
-          </div>
-        </div>
-
-        <div class="colombia-svg-viewport" id="colombia-svg-viewport">
-          <svg
-            id="colombia-interactive-svg"
-            viewBox="0 0 ${SVG_WIDTH} ${SVG_HEIGHT}"
-            role="img"
-            aria-label="Mapa interactivo de Colombia con 32 departamentos, Bogotá D.C. y 1,122 municipios"
-          >
-            <defs>
-              <radialGradient id="colombiaBgGrad" cx="50%" cy="45%" r="65%">
-                <stop offset="0%" stop-color="#1d3c2e" />
-                <stop offset="100%" stop-color="#0f231a" />
-              </radialGradient>
-              <linearGradient id="landFillGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#234937" stop-opacity="0.88" />
-                <stop offset="100%" stop-color="#173326" stop-opacity="0.94" />
-              </linearGradient>
-              <filter id="glowFilter" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="3.2" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-
-            <!-- Fondo oceánico/cartográfico -->
-            <rect x="0" y="0" width="${SVG_WIDTH}" height="${SVG_HEIGHT}" fill="url(#colombiaBgGrad)" />
-
-            <g id="map-pan-zoom-group">
-              <!-- Cuadrícula geográfica -->
-              <g class="map-graticule">
-                ${latLines.join('')}
-                ${lonLines.join('')}
-              </g>
-
-              <!-- Etiquetas marítimas y fronterizas -->
-              <text x="275" y="95" class="map-sea-label">MAR CARIBE</text>
-              <text x="95" y="470" class="map-sea-label">OCÉANO PACÍFICO</text>
-              <text x="690" y="290" class="map-border-label">VENEZUELA</text>
-              <text x="710" y="670" class="map-border-label">BRASIL</text>
-              <text x="415" y="835" class="map-border-label">PERÚ</text>
-              <text x="155" y="725" class="map-border-label">ECUADOR</text>
-
-              <!-- Silueta continental de Colombia -->
-              <path d="${outlinePathD}" class="colombia-land-silhouette" fill="url(#landFillGrad)" />
-
-              <!-- Recuadro Insular: Archipiélago de San Andrés, Providencia y Santa Catalina (88) -->
-              <g class="san-andres-inset">
-                <rect x="42" y="48" width="185" height="135" rx="10" class="inset-box" />
-                <text x="54" y="68" class="inset-title">ARCHIPIÉLAGO SAN ANDRÉS (88)</text>
-                <text x="54" y="82" class="inset-subtitle">San Andrés (88001) · Providencia (88564)</text>
-              </g>
-
-              <!-- Líneas de conexión departamental (Capital -> Municipios del departamento activo) -->
-              <g id="map-dept-spokes"></g>
-
-              <!-- Capa de los 1,122 puntos de municipios y ciudades -->
-              <g id="map-municipalities-layer"></g>
-
-              <!-- Capa de etiquetas de capitales y ciudad activa -->
-              <g id="map-labels-layer"></g>
-
-              <!-- Marcador pulsante del municipio/ciudad actualmente seleccionado -->
-              <g id="map-active-marker"></g>
-            </g>
-          </svg>
-
-          <!-- Tooltip flotante al pasar el cursor sobre cualquier punto -->
-          <div id="map-hover-tooltip" class="map-hover-tooltip" hidden></div>
-
-          <!-- Leyenda inferior del mapa -->
-          <div class="map-legend-bar">
-            <span><i class="legend-dot legend-dot-active"></i> Territorio seleccionado</span>
-            <span><i class="legend-dot legend-dot-capital"></i> Capital departamental / D.C. (33)</span>
-            <span><i class="legend-dot legend-dot-dept-mpio"></i> Municipios del dpto activo</span>
-            <span><i class="legend-dot legend-dot-mpio"></i> Otros municipios de Colombia (1,122 total)</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- COLUMNA DERECHA: FICHA INTERACTIVA DEL PUNTO SELECCIONADO Y ACCESO RÁPIDO A LOS 33 DEPARTAMENTOS -->
-      <div class="colombia-map-sidepanel">
-        <div id="map-selected-card" class="map-selected-card" aria-live="polite"></div>
-
-        <div class="map-dept-directory">
-          <div class="map-dept-directory-head">
-            <span class="eyebrow">EXPLORADOR DIRECTO · 33 ENTIDADES TERRITORIALES</span>
-            <small id="map-dept-counter">Haz clic en cualquier punto del mapa o en un departamento:</small>
-          </div>
-          <div id="map-all-depts-list" class="map-all-depts-list" role="list"></div>
-        </div>
-
-        <div class="map-mpio-directory">
-          <div class="map-dept-directory-head">
-            <span class="eyebrow" id="map-mpio-list-title">CIUDADES Y MUNICIPIOS DEL DEPARTAMENTO</span>
-            <input id="map-mpio-quick-filter" type="search" placeholder="Filtrar ciudad/municipio en este dpto…" autocomplete="off" />
-          </div>
-          <div id="map-dept-mpios-chips" class="map-dept-mpios-chips"></div>
-        </div>
+    <div class="reg-map-stage">
+      <div id="leaflet-map-canvas" class="leaflet-map-canvas" role="region" aria-label="Mapa interactivo de puestos de votación en Colombia y el mundo"></div>
+      <div class="reg-map-floating-bar">
+        <button type="button" id="btn-map-toggle-1122" class="reg-map-pill-btn">
+          <span>📍</span> Ver los 1,122 Municipios de Colombia en el mapa
+        </button>
+        <button type="button" id="btn-map-view-colombia" class="reg-map-pill-btn active">
+          <span>🇨🇴</span> Vista Colombia y Caribe
+        </button>
+        <button type="button" id="btn-map-view-world" class="reg-map-pill-btn">
+          <span>🌎</span> Vista Mundial (Consulados)
+        </button>
       </div>
     </div>
   `;
 
-  const svgEl = container.querySelector<SVGSVGElement>('#colombia-interactive-svg')!;
-  const panZoomGroup = container.querySelector<SVGGElement>('#map-pan-zoom-group')!;
-  const spokesLayer = container.querySelector<SVGGElement>('#map-dept-spokes')!;
-  const mpiosLayer = container.querySelector<SVGGElement>('#map-municipalities-layer')!;
-  const labelsLayer = container.querySelector<SVGGElement>('#map-labels-layer')!;
-  const activeMarkerLayer = container.querySelector<SVGGElement>('#map-active-marker')!;
-  const tooltipEl = container.querySelector<HTMLElement>('#map-hover-tooltip')!;
-  const selectedCardEl = container.querySelector<HTMLElement>('#map-selected-card')!;
-  const allDeptsListEl = container.querySelector<HTMLElement>('#map-all-depts-list')!;
-  const deptMpiosChipsEl = container.querySelector<HTMLElement>('#map-dept-mpios-chips')!;
-  const mpioQuickFilterInput = container.querySelector<HTMLInputElement>('#map-mpio-quick-filter')!;
-  const mpioListTitleEl = container.querySelector<HTMLElement>('#map-mpio-list-title')!;
+  const mapCanvas = container.querySelector<HTMLElement>('#leaflet-map-canvas')!;
 
-  // Build all 1,122 SVG circle elements once and attach data attributes for instant delegation
-  const pointsHtml: string[] = [];
-  for (let i = 0; i < allPoints.length; i++) {
-    const pt = allPoints[i];
-    const isCap = pt.mpio.is_capital;
-    const r = isCap ? 4.8 : 2.5;
-    pointsHtml.push(
-      `<circle
-        cx="${pt.x}"
-        cy="${pt.y}"
-        r="${r}"
-        data-idx="${i}"
-        data-dept="${pt.dept.code}"
-        data-mpio="${pt.mpio.code}"
-        data-capital="${isCap ? '1' : '0'}"
-        class="map-point ${isCap ? 'map-point-capital' : 'map-point-mpio'}"
-      />`,
-    );
-  }
-  mpiosLayer.innerHTML = pointsHtml.join('');
+  // Initialize Leaflet Map matching the exact screenshot bounding area (Colombia + Caribbean + Central/Northern South America)
+  const map = L.map(mapCanvas, {
+    center: [8.35, -72.8],
+    zoom: 5,
+    minZoom: 2,
+    maxZoom: 16,
+    zoomControl: true,
+    scrollWheelZoom: true,
+  });
 
-  function applyTransform(): void {
-    panZoomGroup.setAttribute(
-      'transform',
-      `translate(${panX.toFixed(1)}, ${panY.toFixed(1)}) scale(${zoom.toFixed(3)})`,
-    );
-  }
+  // Base Tile Layers (OpenStreetMap Standard like the screenshot + Carto Voyager + Topo)
+  const osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors · DANE DIVIPOLA · Consensus Colombia',
+    maxZoom: 19,
+  });
 
-  function focusOnDepartment(deptCode: string): void {
-    const deptPts = allPoints.filter((p) => p.dept.code === deptCode);
-    if (deptPts.length === 0) return;
+  const cartoLight = L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      maxZoom: 19,
+    },
+  );
 
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
-    for (const p of deptPts) {
-      if (p.x < minX) minX = p.x;
-      if (p.x > maxX) maxX = p.x;
-      if (p.y < minY) minY = p.y;
-      if (p.y > maxY) maxY = p.y;
+  osmStandard.addTo(map);
+
+  // Layer control in top-right (just like the layers button in the screenshot!)
+  const clusterLayerGroup = L.layerGroup().addTo(map);
+  const bluePinsLayerGroup = L.layerGroup().addTo(map);
+  const activeDepartmentLayerGroup = L.layerGroup().addTo(map);
+  const all1122LayerGroup = L.layerGroup();
+
+  L.control
+    .layers(
+      {
+        'Mapa Oficial Estándar (OpenStreetMap)': osmStandard,
+        'Mapa Cartográfico Claro (Voyager)': cartoLight,
+      },
+      {
+        'Agrupaciones Regionales y Países': clusterLayerGroup,
+        'Puestos Destacados y Consulados (Pines Azules)': bluePinsLayerGroup,
+        'Municipios y Puestos del Departamento Activo': activeDepartmentLayerGroup,
+        'Todos los 1,122 Municipios de Colombia': all1122LayerGroup,
+      },
+      { position: 'topright', collapsed: true },
+    )
+    .addTo(map);
+
+  // Render Regional & Country Cluster Circles (matching screenshot)
+  function renderClustersAndFeaturedPins(): void {
+    clusterLayerGroup.clearLayers();
+    bluePinsLayerGroup.clearLayers();
+
+    for (const cluster of REGIONAL_CLUSTERS) {
+      const marker = L.marker([cluster.lat, cluster.lon], {
+        icon: createClusterIcon(cluster.count, cluster.tier),
+        title: `${cluster.label} (${cluster.count} puestos)`,
+      });
+
+      marker.bindPopup(`
+        <div class="reg-popup">
+          <span class="reg-popup-tag">${cluster.count} PUESTOS HABILITADOS</span>
+          <strong>${cluster.label}</strong>
+          <p>Haz clic abajo para acercar y elegir municipio y puesto de votación:</p>
+          <button type="button" class="reg-popup-btn" data-popup-dept="${cluster.deptCode}" data-popup-mpio="${cluster.mpioCode}" data-popup-zoom="${cluster.zoomTarget}">
+            Acercar y seleccionar región →
+          </button>
+        </div>
+      `);
+
+      marker.on('click', () => {
+        const { department, municipality, station } = selectDepartmentAndMunicipality(
+          cluster.deptCode,
+          cluster.mpioCode,
+        );
+        onSelectTerritory(department.code, municipality.code, station.stationCode);
+        map.flyTo([municipality.lat, municipality.lon], cluster.zoomTarget, {
+          duration: 0.9,
+        });
+        renderActiveDepartmentMarkers();
+      });
+
+      clusterLayerGroup.addLayer(marker);
     }
 
-    const cx = (minX + maxX) / 2;
-    const cy = (minY + maxY) / 2;
-    const spanX = Math.max(65, maxX - minX + 70);
-    const spanY = Math.max(65, maxY - minY + 70);
+    // Featured blue pins from screenshot + all 33 department capitals + international consulates
+    for (const pin of FEATURED_BLUE_PINS) {
+      const marker = L.marker([pin.lat, pin.lon], {
+        icon: createBluePinIcon(false),
+        title: pin.title,
+      });
 
-    const targetZoom = Math.min(3.4, Math.max(1.35, Math.min(SVG_WIDTH / spanX, SVG_HEIGHT / spanY) * 0.65));
-    zoom = targetZoom;
-    panX = SVG_WIDTH / 2 - cx * zoom;
-    panY = SVG_HEIGHT / 2 - cy * zoom;
-    applyTransform();
+      marker.on('click', () => {
+        const { department, municipality, station } = selectDepartmentAndMunicipality(
+          pin.deptCode,
+          pin.mpioCode,
+        );
+        onSelectTerritory(department.code, municipality.code, station.stationCode);
+        map.flyTo([municipality.lat, municipality.lon], 10, { duration: 0.85 });
+        renderActiveDepartmentMarkers();
+      });
+
+      bluePinsLayerGroup.addLayer(marker);
+    }
+
+    // Also add blue pins for all 33 Colombian Department Capitals & International Consulates
+    for (const entity of allTerritorialEntities) {
+      const capMpio =
+        entity.municipalities.find((m) => m.is_capital) ?? entity.municipalities[0];
+      if (!capMpio) continue;
+      const m = L.marker([capMpio.lat, capMpio.lon], {
+        icon: createBluePinIcon(false),
+        title: `${capMpio.name} (${entity.name})`,
+      });
+      m.on('click', () => {
+        const { department, municipality, station } = selectDepartmentAndMunicipality(
+          entity.code,
+          capMpio.code,
+        );
+        onSelectTerritory(department.code, municipality.code, station.stationCode);
+        map.flyTo([municipality.lat, municipality.lon], 10, { duration: 0.85 });
+        renderActiveDepartmentMarkers();
+      });
+      bluePinsLayerGroup.addLayer(m);
+    }
   }
 
-  function resetNationalView(): void {
-    zoom = 1;
-    panX = 0;
-    panY = 0;
-    applyTransform();
+  // Populate all 1,122 municipalities layer for national exploration
+  function buildAll1122MunicipalitiesLayer(): void {
+    all1122LayerGroup.clearLayers();
+    const { municipalityCode } = activeDivipolaCodes();
+    for (const dept of allDepartments) {
+      for (const mpio of dept.municipalities) {
+        const isSel = mpio.code === municipalityCode;
+        const dot = L.marker([mpio.lat, mpio.lon], {
+          icon: createMunicipalityDotIcon(mpio.is_capital, isSel),
+          title: `[${mpio.code}] ${mpio.name} — ${dept.name}`,
+        });
+        dot.on('click', () => {
+          const { department, municipality, station } = selectDepartmentAndMunicipality(
+            dept.code,
+            mpio.code,
+          );
+          onSelectTerritory(department.code, municipality.code, station.stationCode);
+          map.flyTo([municipality.lat, municipality.lon], 12, { duration: 0.75 });
+          renderActiveDepartmentMarkers();
+        });
+        all1122LayerGroup.addLayer(dot);
+      }
+    }
   }
 
-  function renderMapLayersAndSidepanel(): void {
-    const { departmentCode, municipalityCode } = activeDivipolaCodes();
-    const activeDept = getDepartmentByCode(departmentCode);
+  // Render all municipalities of the currently active Department/Country + all Voting Stations of the selected Municipality
+  function renderActiveDepartmentMarkers(): void {
+    activeDepartmentLayerGroup.clearLayers();
+    const { departmentCode, municipalityCode, stationCode } = activeDivipolaCodes();
+    const dept = getDepartmentByCode(departmentCode);
     const activeMpio = getMunicipalityByCode(municipalityCode);
+    const stations = getVotingStationsForMunicipality(departmentCode, municipalityCode);
 
-    // 1. Update point visibility & classes across all 1,122 circles
-    const circles = mpiosLayer.querySelectorAll<SVGCircleElement>('circle');
-    circles.forEach((circle) => {
-      const cDept = circle.dataset.dept!;
-      const cMpio = circle.dataset.mpio!;
-      const isCap = circle.dataset.capital === '1';
-      const isSameDept = cDept === departmentCode;
-      const isSelected = cMpio === municipalityCode;
-
-      let visible = true;
-      if (filterMode === 'capitals') {
-        visible = isCap || isSelected;
-      } else if (filterMode === 'active_department') {
-        visible = isSameDept || isCap;
-      }
-
-      circle.style.display = visible ? '' : 'none';
-      circle.classList.toggle('is-active-dept', isSameDept);
-      circle.classList.toggle('is-selected-mpio', isSelected);
-
-      if (isSelected) {
-        circle.setAttribute('r', '6.8');
-      } else if (isCap) {
-        circle.setAttribute('r', isSameDept ? '5.4' : '4.5');
-      } else if (isSameDept) {
-        circle.setAttribute('r', '3.4');
-      } else {
-        circle.setAttribute('r', '2.2');
-      }
-    });
-
-    // 2. Draw constellation spokes from active department's capital to all its municipalities
-    const capPt = capitalPointsByDept.get(departmentCode);
-    const deptPts = allPoints.filter((p) => p.dept.code === departmentCode);
-    if (capPt && deptPts.length > 1) {
-      spokesLayer.innerHTML = deptPts
-        .map(
-          (pt) =>
-            `<line x1="${capPt.x}" y1="${capPt.y}" x2="${pt.x}" y2="${pt.y}" class="map-spoke-line" />`,
-        )
-        .join('');
-    } else {
-      spokesLayer.innerHTML = '';
-    }
-
-    // 3. Render capital labels + active department municipality labels
-    const labelsHtml: string[] = [];
-    for (const [dCode, pt] of capitalPointsByDept.entries()) {
-      const isActDept = dCode === departmentCode;
-      if (filterMode === 'active_department' && !isActDept) continue;
-      labelsHtml.push(
-        `<text
-          x="${pt.x + 7}"
-          y="${pt.y + 3}"
-          class="map-cap-label ${isActDept ? 'map-cap-label-active' : ''}"
-          data-dept="${dCode}"
-          data-mpio="${pt.mpio.code}"
-        >${pt.mpio.name}</text>`,
-      );
-    }
-    labelsLayer.innerHTML = labelsHtml.join('');
-
-    // 4. Render pulsing target marker on the selected city/municipality
-    const activePt =
-      allPoints.find((p) => p.mpio.code === municipalityCode) ??
-      capitalPointsByDept.get(departmentCode);
-    if (activePt) {
-      activeMarkerLayer.innerHTML = `
-        <circle cx="${activePt.x}" cy="${activePt.y}" r="15" class="map-pulse-outer" />
-        <circle cx="${activePt.x}" cy="${activePt.y}" r="9.5" class="map-pulse-inner" />
-        <circle cx="${activePt.x}" cy="${activePt.y}" r="4.8" class="map-pulse-core" filter="url(#glowFilter)" />
-        <g transform="translate(${Math.min(SVG_WIDTH - 220, Math.max(16, activePt.x + 12))}, ${Math.max(28, activePt.y - 14)})">
-          <rect x="0" y="-16" width="205" height="24" rx="6" class="map-active-callout-bg" />
-          <text x="8" y="-1" class="map-active-callout-text">📍 [${activeMpio.code}] ${activeMpio.name.slice(0, 19)}</text>
-        </g>
-      `;
-    }
-
-    // 5. Update Selected Territory Card on the right sidepanel
-    selectedCardEl.innerHTML = `
-      <div class="map-selected-header">
-        <span class="tag tag-sand">PUNTO SELECCIONADO EN EL MAPA</span>
-        <span class="map-coord-pill">${activeMpio.lat.toFixed(3)}°N, ${activeMpio.lon.toFixed(3)}°W</span>
-      </div>
-      <h3>${activeMpio.name}</h3>
-      <p class="map-selected-sub">
-        <strong>Departamento / Entidad:</strong> [${activeDept.code}] ${activeDept.name}<br/>
-        <strong>Código DANE DIVIPOLA:</strong> <code>${activeMpio.code}</code> ·
-        <strong>Categoría:</strong> ${activeMpio.category}${activeMpio.is_capital ? ' (Capital)' : ''}<br/>
-        <strong>Régimen:</strong> ${activeDept.regime} ·
-        <strong>Municipios en ${activeDept.name}:</strong> ${activeDept.municipalities.length}
-      </p>
-      <div class="button-row">
-        <a href="#vote-panel" class="button map-cta-link">Ir a Votar en ${activeMpio.name} →</a>
-        <a href="#admin-panel" class="button button-quiet map-cta-link">Configurar Proceso aquí</a>
-      </div>
-    `;
-
-    // 6. Render all 33 Departments list
-    allDeptsListEl.innerHTML = allDepartments
-      .map((d) => {
-        const selected = d.code === departmentCode;
-        return `<button
-          type="button"
-          class="map-dept-item ${selected ? 'selected' : ''}"
-          data-select-dept="${d.code}"
-          aria-pressed="${selected}"
-        >
-          <span class="map-dept-code">${d.code}</span>
-          <span class="map-dept-name">${d.name}</span>
-          <span class="map-dept-count">${d.municipalities.length}</span>
-        </button>`;
-      })
-      .join('');
-
-    allDeptsListEl.querySelectorAll<HTMLButtonElement>('[data-select-dept]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const dCode = btn.dataset.selectDept!;
-        const { department, municipality } = selectDepartmentAndMunicipality(dCode);
-        onSelectTerritory(department.code, municipality.code);
-        if (filterMode === 'active_department') {
-          focusOnDepartment(department.code);
-        }
-        renderMapLayersAndSidepanel();
+    // 1. Plot all municipalities/cities in the selected department/country
+    for (const mpio of dept.municipalities) {
+      const isSelectedMpio = mpio.code === activeMpio.code;
+      const dot = L.marker([mpio.lat, mpio.lon], {
+        icon: createMunicipalityDotIcon(mpio.is_capital, isSelectedMpio),
+        title: `[${mpio.code}] ${mpio.name} (${dept.name})`,
       });
-    });
+      dot.on('click', () => {
+        const sel = selectDepartmentAndMunicipality(dept.code, mpio.code);
+        onSelectTerritory(sel.department.code, sel.municipality.code, sel.station.stationCode);
+        map.flyTo([sel.municipality.lat, sel.municipality.lon], 12, { duration: 0.75 });
+        renderActiveDepartmentMarkers();
+      });
+      activeDepartmentLayerGroup.addLayer(dot);
+    }
 
-    // 7. Render Municipalities chips for the active department
-    renderDepartmentMunicipalityChips();
+    // 2. Plot Blue Pins for the Voting Stations (Puestos de Votación) of the selected municipality/city
+    for (const st of stations) {
+      const isSelectedStation = st.stationCode === stationCode;
+      const pin = L.marker([st.lat, st.lon], {
+        icon: createBluePinIcon(isSelectedStation),
+        title: `${st.name} (${activeMpio.name})`,
+        zIndexOffset: isSelectedStation ? 1000 : 500,
+      });
+
+      pin.bindPopup(`
+        <div class="reg-popup">
+          <span class="reg-popup-tag">${isSelectedStation ? '✓ PUESTO SELECCIONADO' : 'PUESTO DE VOTACIÓN'}</span>
+          <strong>${st.name}</strong>
+          <p>
+            <strong>Ubicación:</strong> ${activeMpio.name}, ${dept.name}<br/>
+            <strong>Dirección:</strong> ${st.address}<br/>
+            <strong>Mesas habilitadas:</strong> ${st.tablesCount} mesas · Censo sintético: ${st.potentialVoters.toLocaleString('es-CO')}
+          </p>
+          <a href="#vote-panel" class="reg-popup-btn">🗳️ Votar y correr sistema aquí →</a>
+        </div>
+      `);
+
+      pin.on('click', () => {
+        const sel = selectDepartmentAndMunicipality(dept.code, activeMpio.code, st.stationCode);
+        onSelectTerritory(sel.department.code, sel.municipality.code, sel.station.stationCode);
+        renderActiveDepartmentMarkers();
+      });
+
+      activeDepartmentLayerGroup.addLayer(pin);
+      if (isSelectedStation && map.getZoom() >= 9) {
+        pin.openPopup();
+      }
+    }
   }
 
-  function renderDepartmentMunicipalityChips(): void {
-    const { departmentCode, municipalityCode } = activeDivipolaCodes();
-    const activeDept = getDepartmentByCode(departmentCode);
-    const query = mpioQuickFilterInput.value.trim().toUpperCase();
+  renderClustersAndFeaturedPins();
+  buildAll1122MunicipalitiesLayer();
+  renderActiveDepartmentMarkers();
 
-    mpioListTitleEl.textContent = `CIUDADES Y MUNICIPIOS DE ${activeDept.name} (${activeDept.municipalities.length})`;
+  // Floating bar buttons
+  const btnToggle1122 = container.querySelector<HTMLButtonElement>('#btn-map-toggle-1122')!;
+  const btnViewColombia = container.querySelector<HTMLButtonElement>('#btn-map-view-colombia')!;
+  const btnViewWorld = container.querySelector<HTMLButtonElement>('#btn-map-view-world')!;
 
-    const filtered = activeDept.municipalities.filter(
-      (m) =>
-        !query ||
-        m.normalized.includes(query) ||
-        m.name.toUpperCase().includes(query) ||
-        m.code.includes(query),
-    );
-
-    deptMpiosChipsEl.innerHTML = filtered
-      .map((m) => {
-        const isSel = m.code === municipalityCode;
-        return `<button
-          type="button"
-          class="map-mpio-chip ${isSel ? 'selected' : ''}"
-          data-chip-dept="${activeDept.code}"
-          data-chip-mpio="${m.code}"
-        >
-          <span>${m.code}</span> ${m.name}${m.is_capital ? ' ★' : ''}
-        </button>`;
-      })
-      .join('');
-
-    deptMpiosChipsEl.querySelectorAll<HTMLButtonElement>('[data-chip-mpio]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const dCode = btn.dataset.chipDept!;
-        const mCode = btn.dataset.chipMpio!;
-        selectDepartmentAndMunicipality(dCode, mCode);
-        onSelectTerritory(dCode, mCode);
-        renderMapLayersAndSidepanel();
-      });
-    });
-  }
-
-  mpioQuickFilterInput.addEventListener('input', () => {
-    renderDepartmentMunicipalityChips();
-  });
-
-  // Click delegation on SVG points & labels
-  svgEl.addEventListener('click', (ev) => {
-    const target = ev.target as Element | null;
-    if (!target) return;
-    const deptCode = target.getAttribute('data-dept');
-    const mpioCode = target.getAttribute('data-mpio');
-    if (deptCode && mpioCode) {
-      selectDepartmentAndMunicipality(deptCode, mpioCode);
-      onSelectTerritory(deptCode, mpioCode);
-      renderMapLayersAndSidepanel();
-    }
-  });
-
-  // Hover tooltip on SVG points
-  svgEl.addEventListener('mousemove', (ev) => {
-    const target = ev.target as Element | null;
-    if (!target || !target.hasAttribute('data-idx')) {
-      tooltipEl.hidden = true;
-      return;
-    }
-    const idx = Number(target.getAttribute('data-idx'));
-    const pt = allPoints[idx];
-    if (!pt) {
-      tooltipEl.hidden = true;
-      return;
-    }
-
-    const viewportRect = svgEl.getBoundingClientRect();
-    const relX = ev.clientX - viewportRect.left;
-    const relY = ev.clientY - viewportRect.top;
-
-    tooltipEl.hidden = false;
-    tooltipEl.style.left = `${Math.min(viewportRect.width - 235, Math.max(10, relX + 14))}px`;
-    tooltipEl.style.top = `${Math.max(10, relY - 68)}px`;
-    tooltipEl.innerHTML = `
-      <div class="tooltip-badge">${pt.mpio.is_capital ? '★ CAPITAL DEPARTAMENTAL' : pt.mpio.category.toUpperCase()}</div>
-      <strong>[${pt.mpio.code}] ${pt.mpio.name}</strong>
-      <span>Departamento: ${pt.dept.name} (${pt.dept.code})</span>
-      <small>Lat ${pt.mpio.lat.toFixed(3)}° · Lon ${pt.mpio.lon.toFixed(3)}° — Clic para elegir</small>
-    `;
-  });
-
-  svgEl.addEventListener('mouseleave', () => {
-    tooltipEl.hidden = true;
-  });
-
-  // Drag-to-pan support when zoomed in
-  svgEl.addEventListener('mousedown', (ev) => {
-    if ((ev.target as Element)?.hasAttribute('data-mpio')) return;
-    isDragging = true;
-    dragStartX = ev.clientX - panX;
-    dragStartY = ev.clientY - panY;
-  });
-
-  window.addEventListener('mousemove', (ev) => {
-    if (!isDragging) return;
-    panX = ev.clientX - dragStartX;
-    panY = ev.clientY - dragStartY;
-    applyTransform();
-  });
-
-  window.addEventListener('mouseup', () => {
-    isDragging = false;
-  });
-
-  // Toolbar mode buttons
-  container.querySelectorAll<HTMLButtonElement>('[data-map-mode]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      filterMode = btn.dataset.mapMode as MapFilterMode;
-      container.querySelectorAll<HTMLButtonElement>('[data-map-mode]').forEach((b) => {
-        b.classList.toggle('active', b === btn);
-      });
-      if (filterMode === 'active_department') {
-        focusOnDepartment(activeDivipolaCodes().departmentCode);
-      } else if (filterMode === 'capitals') {
-        resetNationalView();
-      }
-      renderMapLayersAndSidepanel();
-    });
-  });
-
-  container.querySelector<HTMLButtonElement>('#map-zoom-in')!.addEventListener('click', () => {
-    zoom = Math.min(4.0, zoom * 1.3);
-    panX = SVG_WIDTH / 2 - (SVG_WIDTH / 2 - panX) * 1.3;
-    panY = SVG_HEIGHT / 2 - (SVG_HEIGHT / 2 - panY) * 1.3;
-    applyTransform();
-  });
-
-  container.querySelector<HTMLButtonElement>('#map-zoom-out')!.addEventListener('click', () => {
-    zoom = Math.max(1.0, zoom / 1.3);
-    if (zoom === 1) {
-      panX = 0;
-      panY = 0;
+  btnToggle1122.addEventListener('click', () => {
+    showAll1122Dots = !showAll1122Dots;
+    btnToggle1122.classList.toggle('active', showAll1122Dots);
+    if (showAll1122Dots) {
+      all1122LayerGroup.addTo(map);
+      map.flyTo([4.65, -74.1], 6, { duration: 0.8 });
     } else {
-      panX = SVG_WIDTH / 2 - (SVG_WIDTH / 2 - panX) / 1.3;
-      panY = SVG_HEIGHT / 2 - (SVG_HEIGHT / 2 - panY) / 1.3;
+      map.removeLayer(all1122LayerGroup);
     }
-    applyTransform();
   });
 
-  container.querySelector<HTMLButtonElement>('#map-focus-dept')!.addEventListener('click', () => {
-    focusOnDepartment(activeDivipolaCodes().departmentCode);
+  btnViewColombia.addEventListener('click', () => {
+    btnViewColombia.classList.add('active');
+    btnViewWorld.classList.remove('active');
+    map.flyTo([8.35, -72.8], 5, { duration: 0.85 });
   });
 
-  container.querySelector<HTMLButtonElement>('#map-reset-view')!.addEventListener('click', () => {
-    resetNationalView();
+  btnViewWorld.addEventListener('click', () => {
+    btnViewWorld.classList.add('active');
+    btnViewColombia.classList.remove('active');
+    map.flyTo([18.0, -42.0], 3, { duration: 0.9 });
   });
 
-  renderMapLayersAndSidepanel();
+  // Ensure Leaflet recalculates tile container size when workspace becomes visible
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 200);
 
   return {
-    refreshSelection: renderMapLayersAndSidepanel,
+    refreshSelection: (flyToTarget = true) => {
+      map.invalidateSize();
+      renderActiveDepartmentMarkers();
+      if (flyToTarget) {
+        const { departmentCode, municipalityCode, stationCode } = activeDivipolaCodes();
+        const stations = getVotingStationsForMunicipality(departmentCode, municipalityCode);
+        const st = stations.find((s) => s.stationCode === stationCode) ?? stations[0];
+        if (st) {
+          map.flyTo([st.lat, st.lon], Math.max(map.getZoom(), 11), {
+            duration: 0.85,
+          });
+        }
+      }
+    },
+    resetWorldColombiaView: () => {
+      map.invalidateSize();
+      map.flyTo([8.35, -72.8], 5, { duration: 0.8 });
+      renderActiveDepartmentMarkers();
+    },
   };
 }

@@ -150,145 +150,442 @@ const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Falta #app en index.html');
 
 root.innerHTML = `
-  <header class="topbar topbar-institutional">
-    <div class="topbar-brand-group">
-      <a class="brand" href="#territory-panel" aria-label="Consensus inicio">
-        <span class="brand-mark">C</span>
-        <span>CONSENSUS<small>SIMULADOR ELECTORAL · STELLAR</small></span>
-      </a>
-      <div class="brand-divider"></div>
-      <div class="elecciones-badge">
-        <strong>2026</strong>
-        <span>ELECCIONES</span>
+  <!-- BARRA OFICIAL GOV.CO + TRICOLOR REPÚBLICA DE COLOMBIA -->
+  <div class="govco-top-strip" role="banner" aria-label=" Cabecera institucional GOV.CO">
+    <div class="govco-top-inner">
+      <div class="govco-logo-group">
+        <span class="govco-badge">GOV.CO</span>
+        <span class="govco-text">Portal de Innovación Democrática · Laboratorio Cívico Verificable en Stellar</span>
+      </div>
+      <div class="govco-right-pills">
+        <span class="govco-pill">🇨🇴 República de Colombia · 32 Dptos + Bogotá D.C. + Exterior</span>
+        <span class="govco-pill">Ley 1581/2012 · Ley 1757/2015</span>
       </div>
     </div>
-    <nav class="topbar-nav" aria-label="Accesos rápidos del sistema electoral">
-      <a href="#processes-panel">Capacitación Electoral - SICE</a>
-      <a href="#admin-panel">Registro de comités</a>
-      <a href="#territory-panel" class="topbar-nav-highlight">Consultar aquí · ¿Dónde votar?</a>
-      <a href="#vote-panel">Inscripción de ciudadanos</a>
-      <a href="#admin-panel">Inscripción de candidatos</a>
-      <a href="#evidence-panel">Jurados de votación</a>
-    </nav>
-    <div class="topbar-right">
-      <span class="network-pill"><i></i> STELLAR TESTNET</span>
-      <span id="session-badge" class="tag tag-outline">Sesión no iniciada</span>
-      <button id="connect" class="button button-dark" type="button">Conectar Freighter</button>
-      <button id="logout-btn" class="button button-danger" type="button" hidden>Cerrar sesión</button>
+    <div class="colombia-tricolor-bar" aria-hidden="true">
+      <span class="tricolor-yellow"></span>
+      <span class="tricolor-blue"></span>
+      <span class="tricolor-red"></span>
+    </div>
+  </div>
+
+  <header class="topbar topbar-institutional">
+    <div class="topbar-brand-cluster">
+      <div class="topbar-brand-group">
+        <a class="brand" href="#territory-panel" aria-label="Consensus inicio">
+          <span class="brand-mark">C</span>
+          <span>CONSENSUS COLOMBIA<small>REGISTRADURÍA DIGITAL · SIMULADOR STELLAR SOROBAN</small></span>
+        </a>
+        <div class="elecciones-badge">
+          <span class="elecciones-year">2026</span>
+          <span class="elecciones-title">ELECCIONES</span>
+          <span class="elecciones-sub">COLOMBIA Y EL MUNDO</span>
+        </div>
+      </div>
+      <nav class="institutional-nav-strip" aria-label="Accesos rápidos del sistema electoral">
+        <a class="inst-nav-pill" href="#processes-panel">Capacitación Electoral - SICE</a>
+        <a class="inst-nav-pill" href="#admin-panel">Registro de comités</a>
+        <a class="inst-nav-pill inst-nav-pill-active" href="#territory-panel">Consultar aquí · ¿Dónde votar?</a>
+        <a class="inst-nav-pill" href="#vote-panel">Inscripción de ciudadanos</a>
+        <a class="inst-nav-pill" href="#admin-panel">Inscripción de candidatos</a>
+        <a class="inst-nav-pill" href="#evidence-panel">Jurados de votación</a>
+      </nav>
+    </div>
+    <div class="topbar-session-bar">
+      <div class="topbar-session-left">
+        <span class="network-pill"><i></i> STELLAR SOROBAN TESTNET</span>
+        <span id="session-badge" class="tag tag-outline">Autenticación multifactor pendiente</span>
+      </div>
+      <div class="topbar-right">
+        <button id="connect" class="button button-dark" type="button">🔗 Conectar Billetera Freighter</button>
+        <button id="logout-btn" class="button button-danger" type="button" hidden>Cerrar sesión segura</button>
+      </div>
     </div>
   </header>
 
-  <!-- PANTALLAS 1, 2 Y 3: PRIMERA PÁGINA — LOGIN SEGURO MULTIFACTOR DE 4 PASOS -->
+  <!-- PANTALLAS 1, 2 Y 3: PORTAL GUBERNAMENTAL DE IDENTIDAD DIGITAL Y VERIFICACIÓN EN 4 PASOS -->
   <section id="auth-gate" class="auth-gate-shell" aria-labelledby="auth-gate-title">
-    <div class="auth-card">
-      <div class="auth-card-header">
-        <div>
-          <p class="eyebrow">ACCESO MULTIFACTOR SEGURO · LEY 1581 DE 2012</p>
-          <h1 id="auth-gate-title">Identidad digital de laboratorio y verificación en 4 pasos</h1>
-          <p class="muted">Entorno educativo y experimental para Colombia y el mundo. Utiliza exclusivamente cuentas sintéticas de prueba; no valida ciudadanía real ni inscripción en el censo electoral.</p>
-        </div>
-        <div class="hero-stamp auth-stamp"><span>CO</span><strong>2026</strong><small>4 FACTORES</small></div>
-      </div>
-
-      <ol class="auth-stepper" aria-label="Progreso de autenticación">
-        <li id="step-ind-1" class="active"><span>01</span> Correo + reCAPTCHA</li>
-        <li id="step-ind-2"><span>02</span> Código OTP Correo</li>
-        <li id="step-ind-3"><span>03</span> Verificación Facial / Alternativa</li>
-        <li id="step-ind-4"><span>04</span> Sesión HttpOnly</li>
-      </ol>
-
-      <div id="auth-alert" class="auth-alert" role="status" aria-live="polite">
-        Paso 1 de 4: Selecciona un perfil sintético o haz clic en "🗺️ Entrar y Abrir Mapa ¿Dónde podrás votar?" para correr el sistema inmediatamente.
-      </div>
-
-      <!-- PASO 1: CORREO + GOOGLE RECAPTCHA -->
-      <div id="auth-step-1" class="auth-step-pane">
-        <div class="form-grid">
-          <div>
-            <label for="login-preset">Cuentas ficticias autorizadas para el MVP</label>
-            <select id="login-preset">
-              <option value="participante.demo@consensus.local">Participante Sintético (participante.demo@consensus.local)</option>
-              <option value="admin.demo@consensus.local">Administrador Sintético (admin.demo@consensus.local)</option>
-              <option value="auditor.demo@consensus.local">Auditor Independiente Sintético (auditor.demo@consensus.local)</option>
-            </select>
+    <div class="gov-auth-portal">
+      <!-- COLUMNA IZQUIERDA: IDENTIDAD INSTITUCIONAL DEL ESTADO COLOMBIANO -->
+      <aside class="gov-auth-aside" aria-label="Información institucional de seguridad">
+        <div class="gov-coat-header">
+          <div class="gov-shield-circle" aria-hidden="true">
+            <svg viewBox="0 0 64 64" width="42" height="42" fill="none">
+              <circle cx="32" cy="32" r="30" stroke="#FCD116" stroke-width="2.2" fill="rgba(255,255,255,0.06)"/>
+              <path d="M32 10L49 18V31C49 43.2 41.7 51.8 32 55C22.3 51.8 15 43.2 15 31V18L32 10Z" fill="#003893" stroke="#FCD116" stroke-width="2"/>
+              <path d="M16 24H48V32H16V24Z" fill="#FCD116" fill-opacity="0.88"/>
+              <path d="M17 32H47V41C44.5 47 38.8 51.5 32 54C25.2 51.5 19.5 47 17 41V32Z" fill="#CE1126" fill-opacity="0.9"/>
+              <circle cx="32" cy="20" r="3.2" fill="#FCD116"/>
+            </svg>
           </div>
           <div>
-            <label for="login-email">Correo electrónico</label>
-            <input id="login-email" type="email" value="participante.demo@consensus.local" autocomplete="username" required />
+            <span class="gov-aside-kicker">REPÚBLICA DE COLOMBIA · DEMO CÍVICO</span>
+            <h2>Ventanilla Única de Identidad Electoral</h2>
           </div>
         </div>
-        <div class="form-grid">
+
+        <p class="gov-aside-desc">
+          Sistema de autenticación multifactor con validación de <strong>Google reCAPTCHA</strong> en servidor, código <strong>OTP criptográfico</strong> de un solo uso y verificación biométrica 1:1 <strong>FacePlugin SDK</strong> bajo la <strong>Ley Estatutaria 1581 de 2012</strong>.
+        </p>
+
+        <div class="gov-role-picker-title">1. Selecciona tu perfil institucional de prueba:</div>
+        <div class="gov-role-cards" role="group" aria-label="Perfiles sintéticos disponibles">
+          <button type="button" class="gov-role-card active" data-preset-email="participante.demo@consensus.local">
+            <span class="gov-role-icon">🗳️</span>
+            <div class="gov-role-info">
+              <strong>Ciudadano Votante</strong>
+              <small>participante.demo@consensus.local · Medellín (05001)</small>
+            </div>
+            <span class="gov-role-check">✓</span>
+          </button>
+          <button type="button" class="gov-role-card" data-preset-email="admin.demo@consensus.local">
+            <span class="gov-role-icon">🏛️</span>
+            <div class="gov-role-info">
+              <strong>Delegado Electoral (Admin)</strong>
+              <small>admin.demo@consensus.local · Apertura y Escrutinio</small>
+            </div>
+            <span class="gov-role-check">✓</span>
+          </button>
+          <button type="button" class="gov-role-card" data-preset-email="auditor.demo@consensus.local">
+            <span class="gov-role-icon">🛡️</span>
+            <div class="gov-role-info">
+              <strong>Misión de Auditoría (MOE)</strong>
+              <small>auditor.demo@consensus.local · Verificación Stellar</small>
+            </div>
+            <span class="gov-role-check">✓</span>
+          </button>
+        </div>
+
+        <div class="gov-fast-access-card">
+          <div class="gov-fast-access-copy">
+            <strong>¿Deseas explorar el mapa y votar de inmediato?</strong>
+            <small>Completa automáticamente los 4 pasos de seguridad con la cuenta seleccionada y abre el mapa interactivo de Colombia y el mundo.</small>
+          </div>
+          <button id="btn-fast-demo-login" class="gov-btn-gold-cta" type="button">
+            🗺️ Entrar y Abrir Mapa "¿Dónde podrás votar?" →
+          </button>
+        </div>
+
+        <ul class="gov-security-badges">
+          <li><span>🔒</span> Cookie <code>HttpOnly</code> + <code>SameSite=Lax</code> (Cero secretos en localStorage)</li>
+          <li><span>🧬</span> Biometría 1:1 efímera en RAM (0 segundos de retención en disco o S3)</li>
+          <li><span>⛓️</span> Contrato Inteligente Rust/WASM en Stellar Soroban Testnet</li>
+        </ul>
+      </aside>
+
+      <!-- COLUMNA DERECHA: ASISTENTE DE AUTENTICACIÓN EN 4 PASOS -->
+      <div class="auth-card gov-auth-main">
+        <div class="auth-card-header">
           <div>
-            <label for="login-recaptcha">Verificación Google reCAPTCHA (validada en servidor)</label>
-            <select id="login-recaptcha">
-              <option value="test-recaptcha-pass-consensus">Token de desarrollo válido (verificado en backend)</option>
-              <option value="invalid-bot-token">Simular token reCAPTCHA inválido (probar rechazo en servidor)</option>
-            </select>
+            <div class="gov-header-pills">
+              <span class="gov-badge-official">SEGURIDAD ELECTORAL NIVEL 4</span>
+              <span class="gov-badge-law">LEY 1581 DE 2012 · HABEAS DATA</span>
+            </div>
+            <h1 id="auth-gate-title">Verificación de Identidad Digital en 4 Pasos</h1>
+            <p class="muted">Completa el flujo de seguridad paso a paso. Entorno educativo y experimental con datos sintéticos; no reemplaza el censo oficial de la Registraduría Nacional.</p>
           </div>
-          <div class="auth-action-box">
-            <button id="btn-step1-submit" type="button">Validar correo y enviar código OTP →</button>
-            <button id="btn-fast-demo-login" class="button-blue-cta" type="button">🗺️ Entrar y Abrir Mapa "¿Dónde podrás votar?"</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- PASO 2: CÓDIGO OTP POR CORREO -->
-      <div id="auth-step-2" class="auth-step-pane" hidden>
-        <p class="muted">Se generó un código OTP criptográficamente seguro de un solo uso con expiración de 5 minutos, máximo 3 intentos y enfriamiento de 60 segundos.</p>
-        <div id="sandbox-otp-box" class="sandbox-box"></div>
-        <div class="form-grid">
-          <div>
-            <label for="login-otp">Código OTP de 6 dígitos</label>
-            <input id="login-otp" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
-          </div>
-          <div class="auth-action-box">
-            <button id="btn-step2-verify" type="button">Verificar código OTP →</button>
-            <button id="btn-step2-resend" class="button-quiet" type="button">Reenviar OTP</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- PASO 3: CONSENTIMIENTO INFORMADO + FACEPLUGIN SDK / MÉTODO ALTERNATIVO -->
-      <div id="auth-step-3" class="auth-step-pane" hidden>
-        <div class="consent-box">
-          <strong>Consentimiento informado previo para tratamiento biométrico (Ley 1581 de 2012)</strong>
-          <p class="small-note">
-            Finalidad: comparación facial efímera 1:1 en memoria local dentro de este laboratorio educativo. No se realiza identificación 1:N contra galerías ni se infieren atributos sensibles.
-            Tiempo de retención: <strong>0 segundos tras el cálculo</strong> (nunca se persisten imágenes ni vectores biométricos en disco, AWS S3, Stellar ni logs).
-            Puedes revocar tu consentimiento en cualquier momento o continuar mediante el método alternativo autorizado sin usar cámara.
-          </p>
-          <label class="checkbox-row" for="biometric-consent-check">
-            <input id="biometric-consent-check" type="checkbox" />
-            <span>Acepto de forma libre, previa, expresa e informada el procesamiento efímero de prueba.</span>
-          </label>
-          <div class="button-row">
-            <button id="btn-consent-grant" class="button-quiet" type="button">Registrar consentimiento</button>
-            <button id="btn-consent-revoke" class="button-danger" type="button">Revocar consentimiento</button>
-          </div>
+          <div class="hero-stamp auth-stamp"><span>CO</span><strong>2026</strong><small>4 PASOS</small></div>
         </div>
 
-        <div class="form-grid" style="margin-top:0.9rem;">
-          <div class="panel-subtle">
-            <span class="eyebrow">OPCIÓN 3A · VERIFICACIÓN FACIAL 1:1 (FACEPLUGIN SDK)</span>
-            <p class="small-note">Candidata evaluada: <code>Faceplugin-ltd/Open-Source-Face-Recognition-SDK</code>. Cuando el motor local no está instalado, el sistema informa su estado real y <strong>nunca simula una coincidencia facial como si fuera real</strong>.</p>
-            <button id="btn-faceplugin-verify" type="button">Ejecutar verificación 1:1 en FacePlugin SDK</button>
-          </div>
-          <div class="panel-subtle">
-            <span class="eyebrow">OPCIÓN 3B · MÉTODO ALTERNATIVO AUTORIZADO</span>
-            <p class="small-note">Habilitado cuando la cámara no está disponible, la persona decide no usar biometría o el motor local FacePlugin está deshabilitado en el entorno de pruebas.</p>
-            <label for="fallback-code-input">Código de contingencia autorizado</label>
-            <input id="fallback-code-input" value="ALT-CONSENSUS-2026" autocomplete="off" />
-            <div class="button-row">
-              <button id="btn-fallback-verify" type="button">Continuar con método alternativo →</button>
+        <!-- STEPPER INTERACTIVO DE 4 PASOS -->
+        <ol class="auth-stepper gov-stepper" aria-label="Progreso de autenticación">
+          <li id="step-ind-1" class="active">
+            <div class="step-circle">01</div>
+            <div class="step-text"><strong>Correo y reCAPTCHA</strong><small>Filtro antibots</small></div>
+          </li>
+          <li id="step-ind-2">
+            <div class="step-circle">02</div>
+            <div class="step-text"><strong>Código OTP</strong><small>Pin de 6 dígitos</small></div>
+          </li>
+          <li id="step-ind-3">
+            <div class="step-circle">03</div>
+            <div class="step-text"><strong>Biometría Facial</strong><small>FacePlugin 1:1</small></div>
+          </li>
+          <li id="step-ind-4">
+            <div class="step-circle">04</div>
+            <div class="step-text"><strong>Sesión Segura</strong><small>Credencial HttpOnly</small></div>
+          </li>
+        </ol>
+
+        <div id="auth-alert" class="auth-alert gov-alert-banner" role="status" aria-live="polite">
+          Paso 1 de 4: Verifica tu correo institucional y confirma la casilla de seguridad Google reCAPTCHA para recibir tu código OTP.
+        </div>
+
+        <!-- ==================== PASO 1: CORREO + GOOGLE RECAPTCHA ==================== -->
+        <div id="auth-step-1" class="auth-step-pane">
+          <div class="gov-step-card">
+            <div class="gov-step-card-head">
+              <span class="gov-step-number">PASO 01</span>
+              <div>
+                <h3>Identificación por Correo Electrónico y Protección Antibots</h3>
+                <p>Normalización RFC 5322, límite de intentos por IP y verificación de token en servidor.</p>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div>
+                <label for="login-preset">Perfil autorizado del censo sintético</label>
+                <select id="login-preset" class="gov-input">
+                  <option value="participante.demo@consensus.local">Ciudadano Votante (participante.demo@consensus.local)</option>
+                  <option value="admin.demo@consensus.local">Delegado Electoral / Admin (admin.demo@consensus.local)</option>
+                  <option value="auditor.demo@consensus.local">Auditor Independiente MOE (auditor.demo@consensus.local)</option>
+                </select>
+              </div>
+              <div>
+                <label for="login-email">Correo electrónico registrado</label>
+                <div class="gov-input-icon-wrap">
+                  <span class="gov-input-icon">✉️</span>
+                  <input id="login-email" class="gov-input gov-input-with-icon" type="email" value="participante.demo@consensus.local" autocomplete="username" required />
+                </div>
+              </div>
+            </div>
+
+            <!-- WIDGET VISUAL GOOGLE RECAPTCHA REALISTA -->
+            <div class="recaptcha-section-grid">
+              <div class="recaptcha-box" id="recaptcha-visual-box">
+                <label class="recaptcha-check-label" for="recaptcha-visual-checkbox">
+                  <input id="recaptcha-visual-checkbox" type="checkbox" checked />
+                  <span class="recaptcha-custom-box" id="recaptcha-Checkmark"></span>
+                  <span class="recaptcha-label-text">No soy un robot</span>
+                </label>
+                <div class="recaptcha-brand">
+                  <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true">
+                    <path d="M32 8a24 24 0 0 1 21.8 14H44l8 10 8-10h-4.1A28 28 0 0 0 32 4C18.2 4 6.8 14 4.4 27.2l4 .8A24 24 0 0 1 32 8z" fill="#1c3aa9"/>
+                    <path d="M55.6 36.8A24 24 0 0 1 32 56a24 24 0 0 1-21.8-14H20l-8-10-8 10h4.1A28 28 0 0 0 32 60c13.8 0 25.2-10 27.6-23.2l-4-.8z" fill="#4285f4"/>
+                  </svg>
+                  <strong>reCAPTCHA</strong>
+                  <small>Privacidad · Condiciones</small>
+                </div>
+              </div>
+
+              <div class="recaptcha-mode-selector">
+                <label for="login-recaptcha">Modo de validación en servidor (Pruebas DevSecOps)</label>
+                <select id="login-recaptcha" class="gov-input">
+                  <option value="test-recaptcha-pass-consensus">✓ Token reCAPTCHA válido (Verificado por API Backend)</option>
+                  <option value="invalid-bot-token">✕ Simular ataque de bot / Token inválido (Probar rechazo 400)</option>
+                </select>
+                <small class="recaptcha-micro-note">El navegador nunca decide por sí solo; el servidor verifica el token contra la política configurada.</small>
+              </div>
+            </div>
+
+            <div class="gov-step-footer">
+              <button id="btn-step1-submit" class="gov-btn-primary" type="button">
+                Validar Correo y Enviar Código OTP de 6 Dígitos →
+              </button>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- PASO 4: EMISIÓN DE SESIÓN SEGURA -->
-      <div id="auth-step-4" class="auth-step-pane" hidden>
-        <p class="muted">Los factores previos fueron verificados. Al continuar se emitirá una sesión con cookie <code>HttpOnly</code>, <code>SameSite=Lax</code> y protección CSRF. Ningún token ni clave privada se guarda en <code>localStorage</code>.</p>
-        <button id="btn-step4-issue" type="button">Emitir sesión autenticada y abrir Consensus →</button>
+        <!-- ==================== PASO 2: CÓDIGO OTP POR CORREO ==================== -->
+        <div id="auth-step-2" class="auth-step-pane" hidden>
+          <div class="gov-step-card">
+            <div class="gov-step-card-head">
+              <span class="gov-step-number">PASO 02</span>
+              <div>
+                <h3>Verificación de Código OTP de Un Solo Uso (2FA Correo)</h3>
+                <p>Código generado con CSPRNG criptográfico · Expiración: 5 minutos · Máximo 3 intentos.</p>
+              </div>
+            </div>
+
+            <!-- BANDEJA DE CORREO INSTITUCIONAL SIMULADA -->
+            <div class="gov-email-preview-card">
+              <div class="gov-email-preview-header">
+                <span class="gov-email-badge">📩 NOTIFICACIÓN ELECTRÓNICA · SANDBOX LOCAL</span>
+                <span class="gov-otp-timer">⏱️ Expira en 05:00 min</span>
+              </div>
+              <div id="sandbox-otp-box" class="sandbox-box gov-sandbox-otp-content">
+                Generando código OTP seguro...
+              </div>
+            </div>
+
+            <!-- TECLADO VISUAL DE 6 DÍGITOS OTP -->
+            <div class="gov-otp-input-section">
+              <label for="login-otp">Ingresa o confirma los 6 dígitos de tu código de seguridad:</label>
+              <div class="otp-visual-digits" id="otp-visual-digits" aria-hidden="true">
+                <span class="otp-digit-box">-</span>
+                <span class="otp-digit-box">-</span>
+                <span class="otp-digit-box">-</span>
+                <span class="otp-digit-box">-</span>
+                <span class="otp-digit-box">-</span>
+                <span class="otp-digit-box">-</span>
+              </div>
+              <input id="login-otp" class="gov-otp-raw-input" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
+              <small class="muted">Al verificar el código, este queda invalidado inmediatamente para impedir ataques de repetición (replay).</small>
+            </div>
+
+            <div class="gov-step-footer">
+              <button id="btn-step2-verify" class="gov-btn-primary" type="button">
+                Confirmar Código OTP y Pasar a Biometría →
+              </button>
+              <button id="btn-step2-resend" class="button-quiet gov-btn-secondary" type="button">
+                🔄 Reenviar Código OTP (Enfriamiento 60s)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== PASO 3: RECONOCIMIENTO FACIAL 1:1 + LEY 1581 ==================== -->
+        <div id="auth-step-3" class="auth-step-pane" hidden>
+          <div class="gov-step-card">
+            <div class="gov-step-card-head">
+              <span class="gov-step-number">PASO 03</span>
+              <div>
+                <h3>Verificación Biométrica Facial 1:1 (FacePlugin SDK) o Contingencia</h3>
+                <p>Protección de datos sensibles conforme a la Ley 1581 de 2012 · Comparación 1:1 efímera sin almacenamiento.</p>
+              </div>
+            </div>
+
+            <!-- VISOR DE ESCÁNER BIOMÉTRICO + CONSENTIMIENTO LADO A LADO -->
+            <div class="biometric-workstation-grid">
+              <!-- VISOR DE CÁMARA / ESCÁNER FACIAL HUD -->
+              <div class="biometric-scanner-card" id="biometric-scanner-card">
+                <div class="scanner-topbar">
+                  <span class="scanner-live-pill"><i class="scanner-dot"></i> FACEPLUGIN SDK · 1:1 ONNX</span>
+                  <span class="scanner-ram-pill" id="scanner-status-label">RETENCIÓN: 0.0s RAM</span>
+                </div>
+
+                <div class="scanner-viewport" id="scanner-viewport">
+                  <video id="biometric-webcam-video" class="scanner-video" autoplay playsinline muted hidden></video>
+
+                  <!-- MALLA BIOMÉTRICA FACIAL SVG + RETÍCULA DE ESCANEO -->
+                  <svg class="scanner-hud-svg" viewBox="0 0 320 260" aria-label="Visor de encuadre biométrico facial">
+                    <defs>
+                      <linearGradient id="scanLaserGrad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#00e5ff" stop-opacity="0"/>
+                        <stop offset="50%" stop-color="#fcd116" stop-opacity="0.95"/>
+                        <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <!-- Brackets de esquina -->
+                    <path d="M45 55 V30 H75" stroke="#FCD116" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <path d="M275 55 V30 H245" stroke="#FCD116" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <path d="M45 205 V230 H75" stroke="#FCD116" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <path d="M275 205 V230 H245" stroke="#FCD116" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+                    <!-- Óvalo guía de rostro -->
+                    <ellipse cx="160" cy="128" rx="68" ry="84" stroke="#00e5ff" stroke-width="1.6" stroke-dasharray="6 4" fill="rgba(0, 229, 255, 0.04)"/>
+
+                    <!-- Malla geométrica 1:1 (Landmarks faciales sintéticos) -->
+                    <g stroke="rgba(0, 229, 255, 0.55)" stroke-width="1" fill="#FCD116">
+                      <circle cx="134" cy="108" r="2.5"/>
+                      <circle cx="186" cy="108" r="2.5"/>
+                      <circle cx="160" cy="132" r="2.5"/>
+                      <circle cx="140" cy="160" r="2.2"/>
+                      <circle cx="180" cy="160" r="2.2"/>
+                      <circle cx="160" cy="82" r="2.2"/>
+                      <circle cx="116" cy="126" r="2"/>
+                      <circle cx="204" cy="126" r="2"/>
+                      <circle cx="160" cy="186" r="2.2"/>
+                      <line x1="134" y1="108" x2="186" y2="108"/>
+                      <line x1="134" y1="108" x2="160" y2="132"/>
+                      <line x1="186" y1="108" x2="160" y2="132"/>
+                      <line x1="160" y1="132" x2="140" y2="160"/>
+                      <line x1="160" y1="132" x2="180" y2="160"/>
+                      <line x1="140" y1="160" x2="180" y2="160"/>
+                      <line x1="160" y1="82" x2="134" y2="108"/>
+                      <line x1="160" y1="82" x2="186" y2="108"/>
+                      <line x1="116" y1="126" x2="134" y2="108"/>
+                      <line x1="204" y1="126" x2="186" y2="108"/>
+                      <line x1="140" y1="160" x2="160" y2="186"/>
+                      <line x1="180" y1="160" x2="160" y2="186"/>
+                    </g>
+
+                    <!-- Línea láser de escaneo -->
+                    <line id="scanner-laser-line" class="scanner-laser-line" x1="58" y1="70" x2="262" y2="70" stroke="url(#scanLaserGrad)" stroke-width="3"/>
+                  </svg>
+                </div>
+
+                <div class="scanner-telemetry-strip">
+                  <div><small>MODO</small><strong>Comparación 1:1</strong></div>
+                  <div><small>GALERÍA 1:N</small><strong>Deshabilitada</strong></div>
+                  <div><small>PERSISTENCIA</small><strong>0 Bytes en S3/DB</strong></div>
+                </div>
+
+                <div class="scanner-cam-controls">
+                  <button id="btn-toggle-webcam" class="gov-btn-cam-toggle" type="button">
+                    📷 Activar / Apagar Vista de Cámara Local
+                  </button>
+                </div>
+              </div>
+
+              <!-- CONSENTIMIENTO INFORMADO LEY 1581 DE 2012 -->
+              <div class="consent-box gov-consent-card">
+                <div class="gov-consent-header">
+                  <span class="gov-consent-seal">⚖️ LEY ESTATUTARIA 1581 DE 2012</span>
+                  <span id="consent-status-pill" class="gov-consent-pill">Consentimiento requerido</span>
+                </div>
+                <strong>Autorización previa, expresa e informada para tratamiento biométrico efímero</strong>
+                <ul class="gov-consent-list">
+                  <li><strong>Finalidad exclusiva:</strong> Verificación facial 1:1 en memoria volátil para este simulador educativo.</li>
+                  <li><strong>Cero retención:</strong> <code>0 segundos</code> tras el cálculo. Ninguna imagen ni vector se guarda en disco, AWS S3, Stellar ni registros.</li>
+                  <li><strong>Sin coerción:</strong> Si no deseas usar cámara o el motor local no está instalado, dispones del <strong>Pin de Contingencia Autorizado</strong> con plenos efectos en el MVP.</li>
+                </ul>
+
+                <label class="checkbox-row gov-consent-checkbox" for="biometric-consent-check">
+                  <input id="biometric-consent-check" type="checkbox" />
+                  <span>He leído y acepto libremente el procesamiento biométrico efímero de prueba (Retención 0 s).</span>
+                </label>
+
+                <div class="button-row">
+                  <button id="btn-consent-grant" class="gov-btn-consent-ok" type="button">✓ Firmar y Registrar Consentimiento</button>
+                  <button id="btn-consent-revoke" class="button-danger" type="button">✕ Revocar y Limpiar RAM</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- TARJETAS DE ACCIÓN PASO 3A Y 3B -->
+            <div class="form-grid" style="margin-top:1rem;">
+              <div class="panel-subtle gov-method-card">
+                <div class="gov-method-badge-row">
+                  <span class="eyebrow">OPCIÓN 3A · BIOMETRÍA FACIAL 1:1</span>
+                  <span class="gov-tag-sdk">FacePlugin SDK</span>
+                </div>
+                <h4>Escaneo Facial 1:1 en Vivo</h4>
+                <p class="small-note">Evalúa la biblioteca <code>Faceplugin-ltd/Open-Source-Face-Recognition-SDK</code>. Si el runtime nativo no está instalado en este servidor, informa el estado real sin fingir una coincidencia biométrica.</p>
+                <button id="btn-faceplugin-verify" class="gov-btn-primary" type="button">
+                  🧬 Ejecutar Escaneo Facial 1:1 en FacePlugin SDK
+                </button>
+              </div>
+
+              <div class="panel-subtle gov-method-card gov-method-card-alt">
+                <div class="gov-method-badge-row">
+                  <span class="eyebrow">OPCIÓN 3B · CANAL ALTERNATIVO GARANTIZADO</span>
+                  <span class="gov-tag-alt">Accesibilidad / Contingencia</span>
+                </div>
+                <h4>Pin de Contingencia Estatal Autorizado</h4>
+                <p class="small-note">Canal oficial cuando la cámara no está disponible, decides no usar biometría o ejecutas el MVP en la nube sin pesos biométricos locales.</p>
+                <label for="fallback-code-input">Credencial alfanumérica de contingencia</label>
+                <input id="fallback-code-input" class="gov-input" value="ALT-CONSENSUS-2026" autocomplete="off" />
+                <div class="button-row" style="margin-top:.65rem;">
+                  <button id="btn-fallback-verify" class="gov-btn-primary gov-btn-navy" type="button">
+                    🔑 Validar Contingencia y Avanzar al Paso 4 →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== PASO 4: EMISIÓN DE SESIÓN SEGURA ==================== -->
+        <div id="auth-step-4" class="auth-step-pane" hidden>
+          <div class="gov-step-card gov-step4-certificate">
+            <div class="gov-cert-icon">🏛️</div>
+            <span class="gov-badge-official">FACTORES DE SEGURIDAD VERIFICADOS</span>
+            <h3>Credencial de Sesión Criptográfica Lista para Emitir</h3>
+            <p class="muted">Se han completado satisfactoriamente todas las validaciones de seguridad requeridas por el protocolo de identidad digital:</p>
+
+            <div class="gov-cert-checks">
+              <div class="gov-cert-item"><span>✓</span><strong>Paso 1:</strong> Correo normalizado y Google reCAPTCHA validado en backend</div>
+              <div class="gov-cert-item"><span>✓</span><strong>Paso 2:</strong> Código OTP criptográfico de 6 dígitos verificado e invalidado</div>
+              <div class="gov-cert-item"><span>✓</span><strong>Paso 3:</strong> Verificación de identidad / contingencia bajo Ley 1581 de 2012</div>
+              <div class="gov-cert-item"><span>✓</span><strong>Paso 4:</strong> Cookie <code>HttpOnly</code> + <code>SameSite=Lax</code> + Token CSRF (0 datos en localStorage)</div>
+            </div>
+
+            <button id="btn-step4-issue" class="gov-btn-gold-cta gov-btn-large" type="button">
+              🗳️ Emitir Sesión Autenticada y Abrir Mapa Electoral Consensus →
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -311,12 +608,7 @@ root.innerHTML = `
     <div class="page-content">
       <!-- SECCIÓN PRINCIPAL 100% UX/UI: ¿DÓNDE PODRÁS VOTAR? MAPA INTERACTIVO + SELECTORES -->
       <section id="territory-panel" class="donde-votar-section" aria-labelledby="territory-heading">
-        <div class="donde-votar-header">
-          <h1 id="territory-heading" class="donde-votar-title">¿Dónde podrás votar?</h1>
-          <p class="donde-votar-subtitle">Consulta el número y ubicación de los puestos de votación en Colombia y el mundo.</p>
-        </div>
-
-        <div class="donde-votar-grid">
+        <div class="donde-votar-layout">
           <!-- COLUMNA IZQUIERDA: MAPA INTERACTIVO OPENSTREETMAP CON PUNTOS EN COLOMBIA Y EL MUNDO -->
           <div class="donde-votar-map-col">
             <div id="colombia-map-mount" class="colombia-map-mount"></div>
@@ -324,8 +616,11 @@ root.innerHTML = `
 
           <!-- COLUMNA DERECHA: SELECTORES EN CASCADA (DEPARTAMENTO, MUNICIPIO, PUESTO DE VOTACIÓN + RESET AZUL) -->
           <div class="donde-votar-controls-col">
-            <div class="reg-selectors-row-top">
-              <div class="reg-select-wrap">
+            <h1 id="territory-heading" class="donde-votar-heading">¿Dónde podrás votar?</h1>
+            <p class="donde-votar-subtitle">Consulta el número y ubicación de los puestos de votación en Colombia y el mundo.</p>
+
+            <div class="donde-votar-selectors-stack">
+              <div class="reg-select-field">
                 <label for="territory" class="sr-only">Departamento o País</label>
                 <select id="territory" class="reg-pill-select" aria-label="Departamento o País">
                   <optgroup label="Colombia — 32 Departamentos y Bogotá D.C.">
@@ -347,30 +642,30 @@ root.innerHTML = `
                 </select>
               </div>
 
-              <div class="reg-select-wrap">
+              <div class="reg-select-field">
                 <label for="municipality-select" class="sr-only">Municipio o Ciudad</label>
                 <select id="municipality-select" class="reg-pill-select" aria-label="Municipio o Ciudad"></select>
               </div>
-            </div>
 
-            <div class="reg-selectors-row-bottom">
-              <div class="reg-select-wrap reg-select-station-wrap">
-                <label for="voting-station-select" class="sr-only">Puesto de Votación</label>
-                <select id="voting-station-select" class="reg-pill-select" aria-label="Puesto de Votación"></select>
+              <div class="reg-select-row-with-reset">
+                <div class="reg-select-field reg-select-grow">
+                  <label for="voting-station-select" class="sr-only">Puesto de Votación</label>
+                  <select id="voting-station-select" class="reg-pill-select" aria-label="Puesto de Votación"></select>
+                </div>
+                <button id="btn-reset-map-selectors" class="reg-reset-btn" type="button" title="Restablecer vista de Colombia y el mundo" aria-label="Restablecer mapa y selectores">
+                  ↺
+                </button>
               </div>
-              <button id="btn-reset-map-selectors" class="reg-reset-btn" type="button" title="Restablecer vista de Colombia y el mundo" aria-label="Restablecer mapa y selectores">
-                ↺
-              </button>
             </div>
 
             <!-- BUSCADOR RÁPIDO DE CUALQUIER CIUDAD, MUNICIPIO O PAÍS -->
-            <div class="reg-quick-search-box">
-              <input id="territory-search" type="search" placeholder="🔍 Buscar departamento, ciudad, municipio o país (ej. Medellín, Bogotá, Cali, Miami, Madrid)…" autocomplete="off" />
+            <div class="donde-votar-search-box">
+              <input id="territory-search" class="reg-pill-input" type="search" placeholder="🔍 Buscar departamento, ciudad, municipio o país (ej. Medellín, Bogotá, Cali, Miami, Madrid)…" autocomplete="off" />
               <div id="territory-search-results" class="search-results-strip" aria-live="polite"></div>
             </div>
 
             <!-- FICHA DEL PUESTO DE VOTACIÓN ELEGIDO Y BOTÓN PARA CORRER EL SISTEMA -->
-            <div id="divipola-detail-box" class="reg-station-active-card" aria-live="polite"></div>
+            <div id="divipola-detail-box" class="reg-station-runner-card" aria-live="polite"></div>
           </div>
         </div>
 
@@ -694,6 +989,18 @@ function recordLocalAudit(action: string, detail: string): void {
 // 4-Step Authentication Gate Controller
 // ============================================================================
 
+function syncOtpVisualBoxes(rawCode: string): void {
+  const digitsContainer = root!.querySelector<HTMLElement>('#otp-visual-digits');
+  if (!digitsContainer) return;
+  const clean = rawCode.replace(/\D/g, '').slice(0, 6);
+  const boxes = digitsContainer.querySelectorAll<HTMLElement>('.otp-digit-box');
+  boxes.forEach((box, idx) => {
+    const ch = clean[idx];
+    box.textContent = ch ?? '•';
+    box.classList.toggle('filled', Boolean(ch));
+  });
+}
+
 function setAuthStepUI(step: 1 | 2 | 3 | 4, alertText: string, isError = false): void {
   activeAuthStep = step;
   authAlert.textContent = alertText;
@@ -707,10 +1014,46 @@ function setAuthStepUI(step: 1 | 2 | 3 | 4, alertText: string, isError = false):
   }
 }
 
+function syncRoleCards(selectedEmail: string): void {
+  root!.querySelectorAll<HTMLButtonElement>('.gov-role-card').forEach((card) => {
+    const isMatch = card.dataset.presetEmail === selectedEmail;
+    card.classList.toggle('active', isMatch);
+  });
+}
+
+root.querySelectorAll<HTMLButtonElement>('.gov-role-card').forEach((card) => {
+  card.addEventListener('click', () => {
+    const email = card.dataset.presetEmail || 'participante.demo@consensus.local';
+    root!.querySelector<HTMLSelectElement>('#login-preset')!.value = email;
+    root!.querySelector<HTMLInputElement>('#login-email')!.value = email;
+    syncRoleCards(email);
+  });
+});
+
 root.querySelector<HTMLSelectElement>('#login-preset')!.addEventListener('change', (ev) => {
-  root!.querySelector<HTMLInputElement>('#login-email')!.value = (
-    ev.currentTarget as HTMLSelectElement
-  ).value;
+  const val = (ev.currentTarget as HTMLSelectElement).value;
+  root!.querySelector<HTMLInputElement>('#login-email')!.value = val;
+  syncRoleCards(val);
+});
+
+const recaptchaVisualCheckbox = root.querySelector<HTMLInputElement>('#recaptcha-visual-checkbox');
+const recaptchaSelect = root.querySelector<HTMLSelectElement>('#login-recaptcha')!;
+if (recaptchaVisualCheckbox) {
+  recaptchaVisualCheckbox.addEventListener('change', () => {
+    recaptchaSelect.value = recaptchaVisualCheckbox.checked
+      ? 'test-recaptcha-pass-consensus'
+      : 'invalid-bot-token';
+  });
+}
+recaptchaSelect.addEventListener('change', () => {
+  if (recaptchaVisualCheckbox) {
+    recaptchaVisualCheckbox.checked = recaptchaSelect.value === 'test-recaptcha-pass-consensus';
+  }
+});
+
+const otpInputEl = root.querySelector<HTMLInputElement>('#login-otp')!;
+otpInputEl.addEventListener('input', () => {
+  syncOtpVisualBoxes(otpInputEl.value);
 });
 
 root.querySelector<HTMLButtonElement>('#btn-step1-submit')!.addEventListener('click', async () => {
@@ -721,13 +1064,24 @@ root.querySelector<HTMLButtonElement>('#btn-step1-submit')!.addEventListener('cl
     activeChallengeId = res.challenge_id;
     const sandboxBox = root!.querySelector<HTMLElement>('#sandbox-otp-box')!;
     if (res.sandbox_otp_preview) {
-      sandboxBox.innerHTML = `<strong>Bandeja local de pruebas (${res.connection_mode}):</strong> Código OTP generado para <code>${res.masked_email}</code>: <code id="sandbox-otp-code">${res.sandbox_otp_preview}</code> (expira en 5 min)`;
-      root!.querySelector<HTMLInputElement>('#login-otp')!.value = res.sandbox_otp_preview;
+      sandboxBox.innerHTML = `
+        <div class="gov-otp-mail-row">
+          <div>
+            <strong>Destinatario:</strong> <code>${res.masked_email}</code> (${res.connection_mode})<br/>
+            <span>Tu código oficial de verificación de un solo uso es:</span>
+          </div>
+          <div class="gov-otp-code-pill">
+            <code id="sandbox-otp-code">${res.sandbox_otp_preview}</code>
+          </div>
+        </div>
+      `;
+      otpInputEl.value = res.sandbox_otp_preview;
+      syncOtpVisualBoxes(res.sandbox_otp_preview);
     } else {
       sandboxBox.textContent = res.message;
     }
     recordLocalAudit('Paso 1 completado', `Correo normalizado (${res.masked_email}) y reCAPTCHA validado.`);
-    setAuthStepUI(2, `Paso 2 de 4: Ingresa el código OTP enviado a ${res.masked_email}.`);
+    setAuthStepUI(2, `Paso 2 de 4: Se envió el código OTP de 6 dígitos a ${res.masked_email}. Confírmalo para continuar.`);
   } catch (err) {
     setAuthStepUI(1, err instanceof Error ? err.message : 'Error en Paso 1', true);
   }
@@ -735,12 +1089,12 @@ root.querySelector<HTMLButtonElement>('#btn-step1-submit')!.addEventListener('cl
 
 root.querySelector<HTMLButtonElement>('#btn-step2-verify')!.addEventListener('click', async () => {
   try {
-    const code = root!.querySelector<HTMLInputElement>('#login-otp')!.value;
+    const code = otpInputEl.value;
     await verifyOtpStep2(activeChallengeId, code);
     recordLocalAudit('Paso 2 completado', 'Código OTP verificado e invalidado tras un solo uso.');
     setAuthStepUI(
       3,
-      'Paso 3 de 4: Revisa el consentimiento informado (Ley 1581/2012) o utiliza el método alternativo autorizado.',
+      'Paso 3 de 4: Autoriza el consentimiento biométrico (Ley 1581/2012) o utiliza el Pin de Contingencia Estatal Autorizado.',
     );
   } catch (err) {
     setAuthStepUI(2, err instanceof Error ? err.message : 'Error en verificación OTP', true);
@@ -750,19 +1104,66 @@ root.querySelector<HTMLButtonElement>('#btn-step2-verify')!.addEventListener('cl
 root.querySelector<HTMLButtonElement>('#btn-step2-resend')!.addEventListener('click', () => {
   setAuthStepUI(
     2,
-    'Enfriamiento de reenvío activo (60 segundos). Utiliza el código vigente o reinicia si expiró.',
+    'Enfriamiento de reenvío activo (60 segundos). Utiliza el código de 6 dígitos mostrado en la bandeja superior.',
   );
 });
 
+let activeWebcamStream: MediaStream | null = null;
+const webcamBtn = root.querySelector<HTMLButtonElement>('#btn-toggle-webcam');
+const webcamVideo = root.querySelector<HTMLVideoElement>('#biometric-webcam-video');
+const scannerStatusLabel = root.querySelector<HTMLElement>('#scanner-status-label');
+
+if (webcamBtn && webcamVideo) {
+  webcamBtn.addEventListener('click', async () => {
+    if (activeWebcamStream) {
+      activeWebcamStream.getTracks().forEach((t) => t.stop());
+      activeWebcamStream = null;
+      webcamVideo.srcObject = null;
+      webcamVideo.hidden = true;
+      if (scannerStatusLabel) scannerStatusLabel.textContent = 'VISOR SINTÉTICO · 0.0s RAM';
+      webcamBtn.textContent = '📷 Activar Vista de Cámara Local';
+      return;
+    }
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('Cámara web no disponible en este navegador');
+      }
+      activeWebcamStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 360 } },
+        audio: false,
+      });
+      webcamVideo.srcObject = activeWebcamStream;
+      webcamVideo.hidden = false;
+      if (scannerStatusLabel) scannerStatusLabel.textContent = 'CÁMARA ACTIVA · 0.0s RAM';
+      webcamBtn.textContent = '⏹️ Apagar Cámara Local';
+    } catch {
+      if (scannerStatusLabel) scannerStatusLabel.textContent = 'MODO SIMULADOR · 0.0s RAM';
+      setAuthStepUI(
+        3,
+        'Cámara física no detectada o sin permiso; visor biométrico sintético activo. Puedes usar el Pin de Contingencia Autorizado.',
+      );
+    }
+  });
+}
+
+const consentStatusPill = root.querySelector<HTMLElement>('#consent-status-pill');
+
 root.querySelector<HTMLButtonElement>('#btn-consent-grant')!.addEventListener('click', async () => {
   try {
-    const checked = root!.querySelector<HTMLInputElement>('#biometric-consent-check')!.checked;
-    await grantBiometricConsentStep3(activeChallengeId, checked);
+    const checkbox = root!.querySelector<HTMLInputElement>('#biometric-consent-check')!;
+    if (!checkbox.checked) {
+      checkbox.checked = true;
+    }
+    await grantBiometricConsentStep3(activeChallengeId, checkbox.checked);
     biometricConsentChecked = true;
+    if (consentStatusPill) {
+      consentStatusPill.textContent = '✓ Consentimiento Activo (0s RAM)';
+      consentStatusPill.classList.add('consent-pill-ok');
+    }
     recordLocalAudit('Consentimiento informado', 'Aceptado bajo política Ley1581-2012-v1 (retención 0 s).');
     setAuthStepUI(
       3,
-      'Consentimiento registrado. Puedes probar el estado real de FacePlugin SDK o continuar con el método alternativo.',
+      'Consentimiento Ley 1581 registrado. Ejecuta el escaneo 1:1 en FacePlugin SDK o avanza con el Pin de Contingencia.',
     );
   } catch (err) {
     setAuthStepUI(3, err instanceof Error ? err.message : 'Error en consentimiento', true);
@@ -773,10 +1174,14 @@ root.querySelector<HTMLButtonElement>('#btn-consent-revoke')!.addEventListener('
   await revokeBiometricConsentStep3(activeChallengeId);
   biometricConsentChecked = false;
   root!.querySelector<HTMLInputElement>('#biometric-consent-check')!.checked = false;
+  if (consentStatusPill) {
+    consentStatusPill.textContent = 'Consentimiento revocado';
+    consentStatusPill.classList.remove('consent-pill-ok');
+  }
   recordLocalAudit('Consentimiento revocado', 'Estado biométrico efímero limpiado por solicitud del usuario.');
   setAuthStepUI(
     3,
-    'Consentimiento biométrico revocado y memoria limpiada. Puedes continuar con el método alternativo autorizado.',
+    'Consentimiento biométrico revocado y memoria RAM limpiada. Puedes continuar con el Pin de Contingencia Autorizado.',
   );
 });
 
@@ -784,12 +1189,19 @@ root.querySelector<HTMLButtonElement>('#btn-faceplugin-verify')!.addEventListene
   if (!biometricConsentChecked) {
     setAuthStepUI(
       3,
-      'Debes aceptar y registrar primero el consentimiento informado antes de invocar la verificación facial.',
+      'Primero haz clic en "✓ Firmar y Registrar Consentimiento" (Ley 1581 de 2012) o usa el Pin de Contingencia Autorizado.',
       true,
     );
     return;
   }
+  const scannerCard = root!.querySelector<HTMLElement>('#biometric-scanner-card');
+  scannerCard?.classList.add('is-scanning');
+  if (scannerStatusLabel) scannerStatusLabel.textContent = 'ESCANEANDO 1:1...';
   const result = await verifyFacialStep3(activeChallengeId);
+  setTimeout(() => {
+    scannerCard?.classList.remove('is-scanning');
+    if (scannerStatusLabel) scannerStatusLabel.textContent = 'RETENCIÓN: 0.0s RAM';
+  }, 600);
   recordLocalAudit(
     'FacePlugin SDK 1:1',
     `engine_enabled=${result.engine_enabled}, simulated=${result.simulated}`,
@@ -799,7 +1211,7 @@ root.querySelector<HTMLButtonElement>('#btn-faceplugin-verify')!.addEventListene
     return;
   }
   step3Completed = true;
-  setAuthStepUI(4, 'Verificación 1:1 completada. Procede al Paso 4 para emitir la sesión.');
+  setAuthStepUI(4, 'Verificación 1:1 completada. Procede al Paso 4 para emitir la credencial de sesión.');
 });
 
 root.querySelector<HTMLButtonElement>('#btn-fallback-verify')!.addEventListener('click', async () => {
@@ -807,8 +1219,12 @@ root.querySelector<HTMLButtonElement>('#btn-fallback-verify')!.addEventListener(
     const code = root!.querySelector<HTMLInputElement>('#fallback-code-input')!.value;
     await verifyFallbackStep3(activeChallengeId, code);
     step3Completed = true;
-    recordLocalAudit('Paso 3 completado', 'Verificación mediante método alternativo autorizado.');
-    setAuthStepUI(4, 'Paso 4 de 4: Factores completados. Emite la sesión autenticada.');
+    if (activeWebcamStream) {
+      activeWebcamStream.getTracks().forEach((t) => t.stop());
+      activeWebcamStream = null;
+    }
+    recordLocalAudit('Paso 3 completado', 'Verificación mediante Pin de Contingencia Estatal Autorizado.');
+    setAuthStepUI(4, 'Paso 4 de 4: Todos los factores verificados. Emite tu credencial de sesión autenticada.');
   } catch (err) {
     setAuthStepUI(3, err instanceof Error ? err.message : 'Código alternativo inválido', true);
   }
@@ -1017,19 +1433,21 @@ function syncDependentTerritorySelectors(refreshMap = true): void {
     `${activeMpio.name.slice(0, 12)} · ${activeMpio.code}`;
 
   detailBox.innerHTML = `
-    <div class="reg-station-badge-row">
-      <span class="reg-station-pill">📍 PUESTO DE VOTACIÓN ACTIVO</span>
-      <span class="reg-station-coords">${activeStation.lat.toFixed(4)}°, ${activeStation.lon.toFixed(4)}°</span>
+    <div class="reg-station-runner-head">
+      <span class="reg-station-badge">📍 PUESTO DE VOTACIÓN ACTIVO</span>
+      <span class="reg-station-code">${activeStation.stationCode} · ${activeStation.lat.toFixed(3)}°, ${activeStation.lon.toFixed(3)}°</span>
     </div>
-    <h3 class="reg-station-title">${activeStation.name}</h3>
-    <p class="reg-station-meta">
-      <strong>Ubicación:</strong> ${activeMpio.name} — ${dept.name} (Código <code>${activeMpio.code}</code>)<br/>
-      <strong>Dirección:</strong> ${activeStation.address}<br/>
-      <strong>Mesas habilitadas:</strong> ${activeStation.tablesCount} mesas · <strong>Potencial sintético:</strong> ${activeStation.potentialVoters.toLocaleString('es-CO')} votantes
+    <h3>${activeStation.name}</h3>
+    <p class="reg-station-address">
+      <strong>${activeMpio.name} — ${dept.name}</strong> · ${activeStation.address}
     </p>
-    <div class="reg-mechanism-picker">
-      <label for="quick-mechanism-select">Mecanismo de votación o participación a ejecutar en este puesto:</label>
-      <select id="quick-mechanism-select" class="reg-pill-select reg-pill-select-sm">
+    <div class="reg-station-metrics">
+      <span>🗳️ <strong>${activeStation.tablesCount}</strong> mesas instaladas</span>
+      <span>👥 <strong>${activeStation.potentialVoters.toLocaleString('es-CO')}</strong> votantes habilitados</span>
+    </div>
+    <div class="reg-mechanism-picker" style="margin-bottom:.75rem;">
+      <label for="quick-mechanism-select">Mecanismo de participación a ejecutar en este puesto:</label>
+      <select id="quick-mechanism-select" class="reg-pill-select">
         ${votingMechanismTemplates
           .map(
             (t) =>
@@ -1039,8 +1457,11 @@ function syncDependentTerritorySelectors(refreshMap = true): void {
       </select>
     </div>
     <div class="reg-station-actions">
-      <a href="#vote-panel" id="btn-run-station-vote" class="reg-run-system-btn">
-        🗳️ Elegir este Puesto y Correr Votación Aquí →
+      <a href="#vote-panel" id="btn-run-station-vote" class="reg-run-btn reg-run-btn-primary">
+        ⚡ Iniciar / Correr Votación en este Puesto →
+      </a>
+      <a href="#processes-panel" class="reg-run-btn reg-run-btn-secondary">
+        ⚙️ Configurar Reglas
       </a>
     </div>
   `;

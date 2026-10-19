@@ -25,6 +25,7 @@ import {
   verifyFallbackStep3,
   verifyOtpStep2,
 } from './identity';
+import { initInteractiveColombiaMap } from './colombia_map';
 
 type LocalProcess = {
   id: string;
@@ -205,6 +206,7 @@ root.innerHTML = `
           </div>
           <div class="auth-action-box">
             <button id="btn-step1-submit" type="button">Validar correo y enviar código OTP →</button>
+            <button id="btn-fast-demo-login" class="button-quiet" type="button">⚡ Demo Rápido (Completar 4 pasos y abrir Mapa)</button>
           </div>
         </div>
       </div>
@@ -275,14 +277,14 @@ root.innerHTML = `
     <aside class="sidebar" aria-label="Navegación de la aplicación">
       <p class="eyebrow">ESPACIO DE TRABAJO</p>
       <a class="nav-link active" href="#overview"><span>01</span> Panel Participante</a>
-      <a class="nav-link" href="#territory-panel"><span>02</span> Catálogo DIVIPOLA</a>
+      <a class="nav-link" href="#territory-panel"><span>02</span> Mapa de Colombia (1,122)</a>
       <a class="nav-link" href="#processes-panel"><span>03</span> Procesos y Mecanismos</a>
       <a class="nav-link" href="#vote-panel"><span>04</span> Votación y Confirmación</a>
       <a class="nav-link" href="#results-panel"><span>05</span> Resultados y Escrutinio</a>
       <a class="nav-link" href="#admin-panel"><span>06</span> Panel Administrativo</a>
       <a class="nav-link" href="#infra-panel"><span>07</span> Infraestructura y CI/CD</a>
       <a class="nav-link" href="#evidence-panel"><span>08</span> Evidencia y Auditoría</a>
-      <div class="sidebar-note"><span class="live-dot"></span><div><strong>Red de prueba</strong><small>32 Dptos + Bogotá D.C. · 1,122 Mpios</small></div></div>
+      <div class="sidebar-note"><span class="live-dot"></span><div><strong>Mapa Interactivo Activo</strong><small>32 Dptos + Bogotá D.C. · 1,122 Mpios</small></div></div>
     </aside>
 
     <div class="page-content">
@@ -291,7 +293,7 @@ root.innerHTML = `
         <div class="hero-copy">
           <p class="eyebrow">CONSENSUS COLOMBIA <span class="eyebrow-divider">/</span> MVP PARTICIPACIÓN DEMOCRÁTICA</p>
           <h1>Participación verificable<br><em>en Stellar Testnet</em></h1>
-          <p class="hero-description">Plataforma configurable para simulaciones electorales, mecanismos de participación ciudadana (Ley 134/1994 y Ley 1757/2015) y verificación técnica en los 32 departamentos, Bogotá D.C. y los 1,122 municipios de Colombia.</p>
+          <p class="hero-description">Plataforma configurable con mapa interactivo de los 32 departamentos, Bogotá D.C. y los 1,122 municipios de Colombia, 12 mecanismos de participación ciudadana (Ley 134/1994 y Ley 1757/2015) y contratos Soroban.</p>
         </div>
         <div class="hero-stamp"><span>CO</span><strong id="hero-dept-stamp">ANTIOQUIA</strong><small id="hero-mpio-stamp">MEDELLÍN · 05001</small></div>
         <div class="warning-banner"><span class="warning-icon">!</span><p><strong>Límite obligatorio del MVP educativo:</strong> No es un sistema certificado para elecciones oficiales. No ofrece voto secreto criptográfico en cadena pública ni sustituye el censo de la Registraduría; usa exclusivamente cuentas y datos sintéticos.</p></div>
@@ -320,17 +322,20 @@ root.innerHTML = `
         </article>
       </section>
 
-      <!-- PANTALLA 12: CATÁLOGO TERRITORIAL OFICIAL DANE DIVIPOLA -->
+      <!-- PANTALLA 12: MAPA INTERACTIVO Y CATÁLOGO TERRITORIAL OFICIAL DANE DIVIPOLA -->
       <section id="territory-panel" class="territory-panel" aria-labelledby="territory-heading">
         <div class="gallery-heading">
           <div>
-            <p class="eyebrow">FUENTE OFICIAL VERSIONADA · DANE DIVIPOLA (${divipolaMetadata.version})</p>
-            <h2 id="territory-heading">Catálogo Territorial Completo de Colombia (32 Departamentos + Bogotá D.C. + 1,122 Municipios)</h2>
+            <p class="eyebrow">MAPA INTERACTIVO NACIONAL · FUENTE OFICIAL DANE DIVIPOLA (${divipolaMetadata.version})</p>
+            <h2 id="territory-heading">Mapa de Colombia con todos los puntos de Departamentos (33) y Ciudades/Municipios (1,122)</h2>
           </div>
-          <p>Selectores dependientes oficiales: selecciona primero Departamento o Distrito Capital y luego Municipio o Distrito. No constituye prueba de residencia ni de censo electoral.</p>
+          <p>Haz clic directamente sobre cualquier punto del mapa (capital o municipio) para seleccionarlo y activar sus procesos de participación.</p>
         </div>
 
-        <div class="form-grid" style="margin-bottom:0.85rem;">
+        <!-- LIENZO DEL MAPA INTERACTIVO CON LOS 1,122 PUNTOS GEORREFERENCIADOS -->
+        <div id="colombia-map-mount" class="colombia-map-mount"></div>
+
+        <div class="form-grid" style="margin-bottom:0.85rem; margin-top:1rem;">
           <div>
             <label for="territory">1. Seleccionar Departamento / Distrito Capital (33 entidades)</label>
             <select id="territory">
@@ -350,11 +355,11 @@ root.innerHTML = `
 
         <div class="form-grid" style="margin-bottom:0.85rem;">
           <div>
-            <label for="territory-search">Búsqueda normalizada por nombre o código DIVIPOLA (ej. Medellín, Leticia, San Andrés, 05001)</label>
+            <label for="territory-search">Búsqueda rápida por nombre o código DIVIPOLA (ej. Medellín, Leticia, San Andrés, Cali, 05001)</label>
             <input id="territory-search" type="search" placeholder="Escribe al menos 2 letras o un código DIVIPOLA de 5 dígitos…" autocomplete="off" />
           </div>
           <div>
-            <label>Detalle normativo y procedencia del territorio seleccionado</label>
+            <label>Detalle normativo y procedencia del punto seleccionado</label>
             <div id="divipola-detail-box" class="panel-subtle"></div>
           </div>
         </div>
@@ -369,7 +374,7 @@ root.innerHTML = `
             )
             .join('')}
         </div>
-        <p class="territory-note">Hash SHA-256 del catálogo DANE DIVIPOLA: <code>${divipolaMetadata.sha256.slice(0, 24)}…</code> · Cada proceso delimita su ámbito territorial (nacional, departamental, distrital, municipal u organizacional) sobre Stellar Testnet sin crear validadores propios.</p>
+        <p class="territory-note">Hash SHA-256 del catálogo DANE DIVIPOLA: <code>${divipolaMetadata.sha256.slice(0, 24)}…</code> · Cada punto en el mapa corresponde a las coordenadas geográficas oficiales DANE DIVIPOLA sobre Stellar Testnet.</p>
       </section>
 
       <section class="place-gallery" aria-label="Medellín y Antioquia">
@@ -792,6 +797,38 @@ root.querySelector<HTMLButtonElement>('#btn-step4-issue')!.addEventListener('cli
   }
 });
 
+// 1-Click Fast Demo Login (runs all 4 steps in sequence for rapid testing on Vercel)
+root.querySelector<HTMLButtonElement>('#btn-fast-demo-login')!.addEventListener('click', async () => {
+  try {
+    const email = root!.querySelector<HTMLInputElement>('#login-email')!.value;
+    const res1 = await startLoginStep1(email, 'test-recaptcha-pass-consensus');
+    activeChallengeId = res1.challenge_id;
+    if (res1.sandbox_otp_preview) {
+      await verifyOtpStep2(activeChallengeId, res1.sandbox_otp_preview);
+    }
+    await verifyFallbackStep3(activeChallengeId, 'ALT-CONSENSUS-2026');
+    step3Completed = true;
+    currentSession = await issueSessionStep4(activeChallengeId);
+    authGate.hidden = true;
+    workspaceShell.hidden = false;
+    logoutButton.hidden = false;
+    sessionBadge.textContent = `${currentSession.role.toUpperCase()} · ${currentSession.masked_email}`;
+    root!.querySelector<HTMLElement>('#active-user-role')!.textContent =
+      `${currentSession.display_name} (${currentSession.role})`;
+    root!.querySelector<HTMLElement>('#active-user-email')!.textContent =
+      `${currentSession.masked_email} · Cookie HttpOnly · sin localStorage`;
+    selectDepartmentAndMunicipality(currentSession.department_code, currentSession.territory_code);
+    syncDependentTerritorySelectors();
+    renderProcessesUI();
+    recordLocalAudit(
+      'Demo Rápido (4 Pasos)',
+      `Sesión emitida para ${currentSession.masked_email} (${currentSession.role})`,
+    );
+  } catch (err) {
+    setAuthStepUI(1, err instanceof Error ? err.message : 'Error en demo rápido', true);
+  }
+});
+
 logoutButton.addEventListener('click', async () => {
   await logoutSession();
   currentSession = null;
@@ -806,7 +843,7 @@ logoutButton.addEventListener('click', async () => {
 });
 
 // ============================================================================
-// Dependent DANE DIVIPOLA Selectors (Department -> Municipality) & Search
+// Interactive Colombia Map + Dependent DANE DIVIPOLA Selectors & Search
 // ============================================================================
 
 const deptSelect = root.querySelector<HTMLSelectElement>('#territory')!;
@@ -814,8 +851,68 @@ const mpioSelect = root.querySelector<HTMLSelectElement>('#municipality-select')
 const detailBox = root.querySelector<HTMLElement>('#divipola-detail-box')!;
 const searchInput = root.querySelector<HTMLInputElement>('#territory-search')!;
 const searchResultsBox = root.querySelector<HTMLElement>('#territory-search-results')!;
+const mapMountEl = root.querySelector<HTMLElement>('#colombia-map-mount')!;
 
-function syncDependentTerritorySelectors(): void {
+function ensureProcessForTerritory(deptCode: string, mpioCode: string): void {
+  const existing = processesStore.find((p) => p.municipalityCode === mpioCode);
+  if (existing) {
+    activeProcessId = existing.id;
+    return;
+  }
+  const dept = getDepartmentByCode(deptCode);
+  const mpio = getMunicipalityByCode(mpioCode);
+  const newId = `proc-${mpio.code}`;
+  processesStore.unshift({
+    id: newId,
+    title: `Consulta Ciudadana Sintética — ${mpio.name} (${dept.name})`,
+    question: `¿Cuál iniciativa comunitaria prioriza para el municipio/distrito de ${mpio.name} [DIVIPOLA ${mpio.code}]?`,
+    description:
+      'Proceso participativo autogenerado al seleccionar el punto en el Mapa Interactivo de Colombia sobre Stellar Testnet.',
+    templateId: 'consulta_popular',
+    templateName: 'Consulta Popular (Nacional, Departamental, Distrital o Municipal)',
+    category: 'B_participacion_ciudadana',
+    deliberative: false,
+    departmentCode: dept.code,
+    departmentName: dept.name,
+    municipalityCode: mpio.code,
+    municipalityName: mpio.name,
+    scope: mpio.code === '11001' ? 'distrital' : 'municipal',
+    state: 'open',
+    options: [
+      `INFRAESTRUCTURA_${mpio.normalized.replace(/[^A-Z0-9]/g, '').slice(0, 10) || 'LOCAL'}`,
+      `EDUCACION_DIGITAL_${mpio.code}`,
+      'VOTO_EN_BLANCO',
+    ],
+    blankVoteEnabled: true,
+    maxSelections: 1,
+    censusSize: 50,
+    thresholdPct: 33.33,
+    majorityRule: 'mitad_mas_uno_con_tercera_parte_censo',
+    tallies: {
+      [`INFRAESTRUCTURA_${mpio.normalized.replace(/[^A-Z0-9]/g, '').slice(0, 10) || 'LOCAL'}`]: 0,
+      [`EDUCACION_DIGITAL_${mpio.code}`]: 0,
+      VOTO_EN_BLANCO: 0,
+    },
+    voterMarkers: new Set(),
+    proposals: [],
+    receipts: [],
+  });
+  activeProcessId = newId;
+}
+
+const colombiaMap = initInteractiveColombiaMap(mapMountEl, (deptCode, mpioCode) => {
+  ensureProcessForTerritory(deptCode, mpioCode);
+  syncDependentTerritorySelectors(false);
+  renderProcessesUI();
+  const mpio = getMunicipalityByCode(mpioCode);
+  const dept = getDepartmentByCode(deptCode);
+  recordLocalAudit(
+    'Punto seleccionado en Mapa',
+    `[${mpio.code}] ${mpio.name}, ${dept.name} (${mpio.lat.toFixed(2)}°N, ${mpio.lon.toFixed(2)}°W)`,
+  );
+});
+
+function syncDependentTerritorySelectors(refreshMap = true): void {
   const { departmentCode, municipalityCode } = activeDivipolaCodes();
   const dept = getDepartmentByCode(departmentCode);
   const mpios = getMunicipalitiesForDepartment(departmentCode);
@@ -842,7 +939,7 @@ function syncDependentTerritorySelectors(): void {
 
   detailBox.innerHTML = `
     <strong>[${activeMpio.code}] ${activeMpio.name} — ${dept.name}</strong><br/>
-    <small>Categoría: ${activeMpio.category} · Régimen: ${dept.regime} · Fuente: ${divipolaMetadata.source_institution} (${divipolaMetadata.updated_at})</small>
+    <small>Coordenadas: ${activeMpio.lat.toFixed(4)}°N, ${activeMpio.lon.toFixed(4)}°W · Categoría: ${activeMpio.category} · Régimen: ${dept.regime}</small>
   `;
 
   root!.querySelectorAll<HTMLButtonElement>('[data-territory]').forEach((button) => {
@@ -850,19 +947,27 @@ function syncDependentTerritorySelectors(): void {
     button.classList.toggle('selected', selected);
     button.setAttribute('aria-pressed', String(selected));
   });
+
+  if (refreshMap) {
+    colombiaMap.refreshSelection();
+  }
 }
 
 deptSelect.addEventListener('change', (ev) => {
   const deptCode = (ev.currentTarget as HTMLSelectElement).value;
-  selectDepartmentAndMunicipality(deptCode);
+  const { department, municipality } = selectDepartmentAndMunicipality(deptCode);
+  ensureProcessForTerritory(department.code, municipality.code);
   syncDependentTerritorySelectors();
+  renderProcessesUI();
 });
 
 mpioSelect.addEventListener('change', (ev) => {
   const mpioCode = (ev.currentTarget as HTMLSelectElement).value;
   const { departmentCode } = activeDivipolaCodes();
-  selectDepartmentAndMunicipality(departmentCode, mpioCode);
+  const { department, municipality } = selectDepartmentAndMunicipality(departmentCode, mpioCode);
+  ensureProcessForTerritory(department.code, municipality.code);
   syncDependentTerritorySelectors();
+  renderProcessesUI();
 });
 
 searchInput.addEventListener('input', () => {
@@ -885,8 +990,13 @@ searchInput.addEventListener('input', () => {
     .join(' ');
   searchResultsBox.querySelectorAll<HTMLButtonElement>('.search-pill').forEach((btn) => {
     btn.addEventListener('click', () => {
-      selectDepartmentAndMunicipality(btn.dataset.dept!, btn.dataset.mpio!);
+      const { department, municipality } = selectDepartmentAndMunicipality(
+        btn.dataset.dept!,
+        btn.dataset.mpio!,
+      );
+      ensureProcessForTerritory(department.code, municipality.code);
       syncDependentTerritorySelectors();
+      renderProcessesUI();
       searchResultsBox.innerHTML = '';
       searchInput.value = '';
     });
@@ -896,7 +1006,10 @@ searchInput.addEventListener('input', () => {
 root.querySelectorAll<HTMLButtonElement>('[data-territory]').forEach((button) => {
   button.addEventListener('click', () => {
     selectTerritory(button.dataset.territory!);
+    const { departmentCode, municipalityCode } = activeDivipolaCodes();
+    ensureProcessForTerritory(departmentCode, municipalityCode);
     syncDependentTerritorySelectors();
+    renderProcessesUI();
   });
 });
 

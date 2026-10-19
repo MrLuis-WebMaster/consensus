@@ -229,3 +229,382 @@ select { width: 100%; min-height: 40px; padding: .55rem .7rem; color: var(--ink)
   .auth-card-header { flex-direction: column; }
   .auth-action-box { padding-top: .6rem; flex-wrap: wrap; }
 }
+
+/* ==========================================================================
+   Interactive Colombia Map (33 Departments + 1,122 Municipalities/Cities)
+   ========================================================================== */
+.colombia-map-mount { margin: .85rem 0 1.2rem; }
+.colombia-map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, .95fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+.colombia-map-stage-wrap {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #2b4e3c;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #10251c;
+  box-shadow: 0 14px 34px rgba(16, 37, 28, 0.18);
+}
+.colombia-map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .65rem .85rem;
+  background: #163125;
+  border-bottom: 1px solid #284b3a;
+}
+.map-mode-group, .map-zoom-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+.map-mode-btn, .map-ctrl-btn {
+  min-height: 31px;
+  padding: .35rem .65rem;
+  font-size: .68rem;
+  font-weight: 700;
+  color: #cfe0d4;
+  background: #1f4131;
+  border: 1px solid #315c47;
+  border-radius: 6px;
+}
+.map-mode-btn:hover, .map-ctrl-btn:hover {
+  background: #295540;
+  color: #fff;
+}
+.map-mode-btn.active {
+  background: #d7a646;
+  color: #152b20;
+  border-color: #ecc067;
+}
+.colombia-svg-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 860 / 920;
+  max-height: 670px;
+  overflow: hidden;
+  cursor: grab;
+  background: #10251c;
+}
+.colombia-svg-viewport:active { cursor: grabbing; }
+#colombia-interactive-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+}
+.map-grid-line {
+  stroke: #ffffff12;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+.map-grid-label {
+  fill: #7fa28d;
+  font: 600 10px ui-monospace, monospace;
+  pointer-events: none;
+}
+.map-sea-label {
+  fill: #648f7855;
+  font: 800 13px Inter, sans-serif;
+  letter-spacing: .28em;
+  pointer-events: none;
+}
+.map-border-label {
+  fill: #7ca08c44;
+  font: 700 11px Inter, sans-serif;
+  letter-spacing: .2em;
+  pointer-events: none;
+}
+.colombia-land-silhouette {
+  stroke: #579673;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.inset-box {
+  fill: #173427cc;
+  stroke: #579673;
+  stroke-width: 1.4;
+  stroke-dasharray: 4 2;
+}
+.inset-title {
+  fill: #dbe9de;
+  font: 800 9.5px Inter, sans-serif;
+  letter-spacing: .08em;
+  pointer-events: none;
+}
+.inset-subtitle {
+  fill: #9ab8a4;
+  font: 500 8.5px Inter, sans-serif;
+  pointer-events: none;
+}
+.map-spoke-line {
+  stroke: #ecc06755;
+  stroke-width: 1.1;
+  pointer-events: none;
+}
+.map-point {
+  cursor: pointer;
+  transition: r .15s ease, fill .15s ease, stroke-width .15s ease;
+}
+.map-point-mpio {
+  fill: #74b890;
+  fill-opacity: .72;
+  stroke: #11281e;
+  stroke-width: .7;
+}
+.map-point-mpio.is-active-dept {
+  fill: #a7ebbd;
+  fill-opacity: .95;
+  stroke: #132d21;
+  stroke-width: 1.1;
+}
+.map-point-capital {
+  fill: #f0be59;
+  fill-opacity: .96;
+  stroke: #182f23;
+  stroke-width: 1.5;
+}
+.map-point:hover {
+  fill: #ffffff !important;
+  fill-opacity: 1 !important;
+  stroke: #f0be59 !important;
+  stroke-width: 2.4 !important;
+}
+.map-point.is-selected-mpio {
+  fill: #ff6b4a !important;
+  fill-opacity: 1 !important;
+  stroke: #fff !important;
+  stroke-width: 2.2 !important;
+}
+.map-cap-label {
+  fill: #d7e6dc;
+  font: 600 9.5px Inter, sans-serif;
+  paint-order: stroke;
+  stroke: #0e2219;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  cursor: pointer;
+}
+.map-cap-label-active {
+  fill: #ffe094;
+  font-weight: 800;
+  font-size: 10.8px;
+}
+.map-pulse-outer {
+  fill: none;
+  stroke: #ff785a;
+  stroke-width: 1.6;
+  stroke-opacity: .55;
+  pointer-events: none;
+  animation: mapPulseRing 2s infinite ease-out;
+}
+.map-pulse-inner {
+  fill: #ff785a28;
+  stroke: #ff9d85;
+  stroke-width: 1.4;
+  pointer-events: none;
+}
+.map-pulse-core {
+  fill: #ff6b4a;
+  stroke: #ffffff;
+  stroke-width: 1.8;
+  pointer-events: none;
+}
+.map-active-callout-bg {
+  fill: #132a1fee;
+  stroke: #f0be59;
+  stroke-width: 1.2;
+  pointer-events: none;
+}
+.map-active-callout-text {
+  fill: #fff8e6;
+  font: 700 10.5px Inter, sans-serif;
+  pointer-events: none;
+}
+@keyframes mapPulseRing {
+  0% { r: 8px; stroke-opacity: .85; }
+  100% { r: 22px; stroke-opacity: 0; }
+}
+.map-hover-tooltip {
+  position: absolute;
+  z-index: 10;
+  width: 225px;
+  padding: .55rem .7rem;
+  border-radius: 9px;
+  background: #10241bf2;
+  border: 1px solid #f0be59;
+  color: #f4f7f2;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: .18rem;
+}
+.map-hover-tooltip .tooltip-badge {
+  color: #f0be59;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+.map-hover-tooltip strong { font-size: .78rem; color: #fff; }
+.map-hover-tooltip span { font-size: .68rem; color: #c7dcd0; }
+.map-hover-tooltip small { font-size: .62rem; color: #96b5a3; }
+.map-legend-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem 1.1rem;
+  padding: .55rem .85rem;
+  background: #142c21;
+  border-top: 1px solid #264837;
+  color: #bdd1c4;
+  font-size: .66rem;
+}
+.map-legend-bar span { display: inline-flex; align-items: center; gap: .38rem; }
+.legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.legend-dot-active { background: #ff6b4a; box-shadow: 0 0 0 2px #fff; }
+.legend-dot-capital { background: #f0be59; }
+.legend-dot-dept-mpio { background: #a7ebbd; }
+.legend-dot-mpio { background: #74b890; opacity: .75; }
+
+.colombia-map-sidepanel {
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+  min-width: 0;
+}
+.map-selected-card {
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid #c9d8cb;
+  background: linear-gradient(180deg, #fffefa 0%, #f2f6ef 100%);
+}
+.map-selected-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .45rem;
+}
+.map-coord-pill {
+  font: 600 .66rem ui-monospace, monospace;
+  color: #365a45;
+  background: #e5efe6;
+  padding: .24rem .5rem;
+  border-radius: 99px;
+}
+.map-selected-card h3 {
+  margin: .15rem 0 .4rem;
+  font: 700 1.28rem Georgia, serif;
+  color: var(--green-dark);
+}
+.map-selected-sub {
+  margin: 0 0 .65rem;
+  font-size: .73rem;
+  line-height: 1.55;
+  color: #46584e;
+}
+.map-cta-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  font-size: .72rem;
+  padding: .48rem .78rem;
+}
+.map-dept-directory, .map-mpio-directory {
+  padding: .85rem .95rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.map-dept-directory-head {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  margin-bottom: .55rem;
+}
+.map-dept-directory-head small { color: var(--muted); font-size: .67rem; }
+.map-all-depts-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .32rem;
+  max-height: 215px;
+  overflow-y: auto;
+  padding-right: .2rem;
+}
+.map-dept-item {
+  min-height: 32px;
+  padding: .35rem .5rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  background: #f8f7f1;
+  border: 1px solid #e5e3d8;
+  border-radius: 6px;
+  color: var(--ink);
+  font-size: .68rem;
+  text-align: left;
+}
+.map-dept-item:hover, .map-dept-item.selected {
+  background: #e8f1e8;
+  border-color: #6b9a78;
+  color: var(--green-dark);
+}
+.map-dept-code {
+  font: 700 .62rem ui-monospace, monospace;
+  color: #6d7b71;
+}
+.map-dept-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.map-dept-count {
+  font: 600 .6rem ui-monospace, monospace;
+  padding: .1rem .35rem;
+  border-radius: 99px;
+  background: #eae8de;
+  color: #5b695f;
+}
+.map-dept-mpios-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .32rem;
+  max-height: 175px;
+  overflow-y: auto;
+  padding-top: .2rem;
+}
+.map-mpio-chip {
+  min-height: 28px;
+  padding: .28rem .55rem;
+  font-size: .66rem;
+  font-weight: 650;
+  color: #334a3e;
+  background: #f5f4ec;
+  border: 1px solid #dfddd1;
+  border-radius: 99px;
+}
+.map-mpio-chip span {
+  font: 600 .6rem ui-monospace, monospace;
+  color: #77847b;
+}
+.map-mpio-chip:hover, .map-mpio-chip.selected {
+  background: var(--green-dark);
+  color: #fff;
+  border-color: var(--green-dark);
+}
+.map-mpio-chip.selected span { color: #f0be59; }
+
+@media (max-width: 960px) {
+  .colombia-map-layout { grid-template-columns: 1fr; }
+  .colombia-svg-viewport { max-height: 520px; }
+}
+

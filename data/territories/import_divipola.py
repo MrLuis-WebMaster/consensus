@@ -225,7 +225,13 @@ def main() -> int:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # Compact structure for frontend bundle efficiency while preserving 100% of municipalities
+    def _safe_float(val: object, default: float) -> float:
+        try:
+            return round(float(str(val).replace(",", ".")), 5)
+        except (ValueError, TypeError):
+            return default
+
+    # Compact structure for frontend bundle efficiency while preserving 100% of municipalities + coordinates
     compact = {
         "metadata": catalog["metadata"],
         "departments": [
@@ -245,6 +251,8 @@ def main() -> int:
                         "category": m["category"],
                         "is_capital": m["is_capital"],
                         "pilot": m["pilot"],
+                        "lat": _safe_float(m.get("latitude"), 4.5709),
+                        "lon": _safe_float(m.get("longitude"), -74.2973),
                     }
                     for m in d["municipalities"]
                 ],

@@ -8,6 +8,8 @@ export type MunicipalityEntry = {
   category: string;
   is_capital: boolean;
   pilot: boolean;
+  lat: number;
+  lon: number;
 };
 
 export type DepartmentEntry = {

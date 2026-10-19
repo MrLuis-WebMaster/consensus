@@ -7,11 +7,11 @@
     "data/territories/voting_mechanisms_colombia.json": "381557da00f86fa1e329d856507b315f75c01e35f1de1b2c3363414696035dbe",
     "encryption/biometric/lab/face_provider.py": "70072561dd73d8d0b6b112245f0483af505227e461e6e4719120526cae63b47d",
     "encryption/biometric/lab/views.py": "ec9cca3d6f70bd48f27c63945d425e46401e176acda112f4699da4be4c9ecdde",
-    "frontend/dist/index.html": "fd0b2ec3c6bc4413840966118cad414b1529e13609ba2e0d7621a96ffa910065",
+    "frontend/dist/index.html": "59bfb390aabfa4b31765dc8da0309305d992c59651701519f896aab17c55a5ab",
     "services/api/app/main.py": "1dab40a1bc2b1e27dab12899c1d8f519a644c6468afdac9f58929df958494273",
     "stellar/contracts/voting/src/lib.rs": "4147723ccaa9fe644c2a5ea6b3c584be727a699efcf9c3065ca8cf41975523cb"
   },
-  "generated_at_epoch": 1792381341,
+  "generated_at_epoch": 1792382836,
   "git_commit_sha": "local-working-tree",
   "project": "Consensus Colombia Educational MVP",
   "security_assertions": {
